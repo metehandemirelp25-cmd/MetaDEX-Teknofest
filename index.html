@@ -202,6 +202,7 @@
     </div>
 
     <script>
+        // KANKA İŞTE AWS SUNUCUNUN IP'Sİ BURADA (Dokunma)
         const API_BASE = "http://13.53.126.145:5000";
         let cüzdanBagliMi = false;
 
@@ -250,7 +251,6 @@
 
         async function cuzdanBagla() {
             if (cüzdanBagliMi) {
-                // Disconnect işlemi
                 cüzdanBagliMi = false;
                 document.getElementById("connectBtn").innerText = "Cüzdanı Bağla";
                 const swapBtn = document.getElementById("swapBtn");
@@ -298,10 +298,12 @@
                 const res = await fetch(`${API_BASE}/api/history/${varlik}`);
                 const raw = await res.json();
                 veri = raw.map(r => ({ time: Number(r.time), value: Number(r.value) }));
-            } catch (err) {}
+            } catch (err) {
+                console.error("Mixed Content veya API Hatası (Kilide tıklayıp izin verin!):", err);
+            }
 
             if (veri.length === 0) {
-                container.innerHTML = `<div class="chart-empty-msg">Bot verileri topluyor, grafik birazdan dolacak...</div>`;
+                container.innerHTML = `<div class="chart-empty-msg" style="color: #ffcc00;">Lütfen tarayıcının adres çubuğundaki kilit/kalkan simgesine tıklayıp 'Güvenli Olmayan İçeriğe İzin Ver' seçeneğini açın!</div>`;
                 return;
             }
 
@@ -331,7 +333,10 @@
                 const res = await fetch(`${API_BASE}/api/price/${varlik}`);
                 const data = await res.json();
                 anlikFiyat = data.price;
-            } catch (err) { anlikFiyat = 0; }
+            } catch (err) { 
+                anlikFiyat = 0; 
+                console.error("Fiyat çekilemedi. Kilide tıklayıp izin verin!");
+            }
             hesapla();
             if (document.getElementById('chartContainer').classList.contains('active')) grafikCiz();
         }
