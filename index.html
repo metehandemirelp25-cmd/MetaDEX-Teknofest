@@ -30,6 +30,12 @@
         .hero-container { max-width: 1000px; margin: 80px auto; text-align: center; padding: 0 20px; }
         .hero-container h1 { font-size: 56px; margin-bottom: 25px; background: linear-gradient(90deg, #00d2ff, #00ffc2); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
         .hero-container p { font-size: 20px; color: #a0aec0; line-height: 1.6; margin-bottom: 50px; padding: 0 50px; }
+        
+        .features-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 30px; text-align: left; margin-top: 60px; }
+        .feature-card { background: rgba(19, 26, 42, 0.65); backdrop-filter: blur(20px); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 20px; padding: 30px; box-shadow: 0 10px 30px rgba(0,0,0,0.2); transition: 0.3s; }
+        .feature-card:hover { transform: translateY(-5px); border-color: rgba(0, 210, 255, 0.3); }
+        .feature-card h3 { color: #00d2ff; margin-top: 0; font-size: 18px; display: flex; align-items: center; gap: 8px; }
+        .feature-card p { font-size: 15px; margin-bottom: 0; color: #cbd5e0; line-height: 1.5; }
 
         .swap-page-wrapper { display: flex; justify-content: center; align-items: flex-start; gap: 30px; max-width: 1200px; margin: 60px auto; padding: 0 20px; }
         
@@ -43,7 +49,11 @@
 
         .icon-btn { cursor: pointer; font-size: 20px; background: rgba(255,255,255,0.05); padding: 8px; border-radius: 10px; }
         .asset-box { background-color: rgba(11, 14, 20, 0.85); border: 1px solid rgba(255, 255, 255, 0.06); border-radius: 18px; padding: 18px; display: flex; justify-content: space-between; align-items: center; }
-        .asset-box input { background: transparent; border: none; color: white; font-size: 26px; outline: none; width: 55%; }
+        
+        /* Inputlardaki sayı oklarını (spin-button) tamamen kaldıran kısım */
+        .asset-box input { background: transparent; border: none; color: white; font-size: 26px; outline: none; width: 55%; -moz-appearance: textfield; }
+        .asset-box input::-webkit-outer-spin-button, .asset-box input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+
         .asset-dropdown { background: rgba(45, 55, 72, 0.8); color: white; border: 1px solid rgba(255, 255, 255, 0.1); padding: 10px 16px; border-radius: 12px; font-size: 16px; font-weight: bold; outline: none; cursor: pointer; }
 
         .arrow-down { display: flex; justify-content: center; align-items: center; height: 36px; width: 36px; margin: -14px auto; background: #1a202c; border: 4px solid #131a2a; border-radius: 10px; color: #00d2ff; font-size: 18px; position: relative; z-index: 2; cursor: pointer; transition: 0.2s; }
@@ -57,7 +67,8 @@
         .stake-card h2 { margin-top: 0; color: #00d2ff; font-size: 22px; }
         .tier-badge { display: inline-block; background: rgba(0, 210, 255, 0.15); color: #00d2ff; padding: 6px 14px; border-radius: 20px; font-size: 14px; font-weight: bold; margin-bottom: 20px; }
         .stake-input-box { background: rgba(11, 14, 20, 0.85); border: 1px solid rgba(255, 255, 255, 0.06); border-radius: 16px; padding: 16px; margin-bottom: 20px; }
-        .stake-input-box input { width: 100%; background: transparent; border: none; color: white; font-size: 24px; outline: none; }
+        .stake-input-box input { width: 100%; background: transparent; border: none; color: white; font-size: 24px; outline: none; -moz-appearance: textfield; }
+        .stake-input-box input::-webkit-outer-spin-button, .stake-input-box input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
         .info-row { display: flex; justify-content: space-between; margin-top: 15px; font-size: 14px; color: #a0aec0; }
     </style>
 </head>
@@ -84,7 +95,22 @@
         <div class="hero-container">
             <h1>Geleceğin Otonom RWA Ekosistemi</h1>
             <p>BIST100 hisseleri ve küresel emtiaları blokzincire taşıyan, yapay zeka destekli otonom oracle altyapısı ve TRYB tabanlı merkeziyetsiz borsa deneyimi.</p>
-            <button class="swap-btn" style="max-width: 250px; margin: 0 auto;" onclick="sayfaDegis(event, 'swap')">Hemen İşleme Başla</button>
+            <button class="swap-btn" style="max-width: 250px; margin: 0 auto; padding: 16px;" onclick="sayfaDegis(event, 'swap')">Hemen İşleme Başla</button>
+
+            <div class="features-grid">
+                <div class="feature-card">
+                    <h3>⚡ Otonom Oracle</h3>
+                    <p>Piyasa verileri anlık olarak Yahoo Finance üzerinden çekilip Avalanche Fuji ağındaki akıllı sözleşmelere otomatik işlenir.</p>
+                </div>
+                <div class="feature-card">
+                    <h3>💎 Temettü Destekli Stake</h3>
+                    <p>Meta coin stake ederek platform gelirlerinden (hisselerin temettü havuzundan) pay alabilir, tier seviyenizi yükseltebilirsiniz.</p>
+                </div>
+                <div class="feature-card">
+                    <h3>🇹🇷 Yerel & Küresel RWA</h3>
+                    <p>THY, Aselsan, Altın ve Brent Petrol gibi en popüler varlıkları TRYB ile 7/24 kesintisiz takas edin.</p>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -151,7 +177,7 @@
         </div>
     </div>
 
-    <!-- BRIDGE SAYFASI (Ortalanmış & Ok Sistemli) -->
+    <!-- BRIDGE SAYFASI (Ortalanmış, Parantezsiz & Ok Sistemli) -->
     <div id="bridgePage" class="page-section">
         <div class="swap-container">
             <div class="swap-header">
@@ -162,8 +188,8 @@
                 <div class="asset-box" id="bridgeBox1" style="order: 1;">
                     <input type="number" placeholder="0.0" id="bridgePayAmount">
                     <select class="asset-dropdown" id="bridgeFromAsset">
-                        <option value="AVAX">AVAX (Fuji)</option>
-                        <option value="ETH">ETH (Arbitrum)</option>
+                        <option value="AVAX">AVAX</option>
+                        <option value="ETH">ETH</option>
                     </select>
                 </div>
                 <div class="arrow-down" onclick="bridgeYonDegistir()">⇅</div>
