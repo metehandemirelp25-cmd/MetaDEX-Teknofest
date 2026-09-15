@@ -4,10 +4,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>MetaDEX V2 | Otonom RWA & Temettü Borsası</title>
-    
+
     <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2300d2ff' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><rect x='3' y='11' width='18' height='10' rx='2' ry='2'></rect><circle cx='12' cy='5' r='2'></circle><path d='M12 7v4'></path><line x1='8' y1='16' x2='8.01' y2='16'></line><line x1='16' y1='16' x2='16.01' y2='16'></line></svg>">
     <script src="https://cdn.ethers.io/lib/ethers-5.7.2.umd.min.js" defer></script>
-    
+
     <style>
         * { box-sizing: border-box; }
         body { margin: 0; background-color: #0b0e14; background-image: radial-gradient(at 0% 0%, rgba(0, 210, 255, 0.12) 0px, transparent 50%), radial-gradient(at 100% 0%, rgba(58, 123, 213, 0.12) 0px, transparent 50%), radial-gradient(at 100% 100%, rgba(0, 255, 194, 0.08) 0px, transparent 50%); color: #FFFFFF; font-family: 'Segoe UI', sans-serif; min-height: 100vh; }
@@ -15,7 +15,7 @@
         .navbar { display: flex; justify-content: space-between; align-items: center; padding: 20px 40px; background: rgba(11, 14, 20, 0.8); backdrop-filter: blur(15px); border-bottom: 1px solid rgba(255, 255, 255, 0.05); }
         .brand { display: flex; align-items: center; gap: 12px; font-size: 22px; font-weight: bold; color: #fff; text-shadow: 0 0 10px rgba(0, 210, 255, 0.4); cursor: pointer; }
         .robot-logo { width: 36px; height: 36px; stroke: #00d2ff; filter: drop-shadow(0 0 6px rgba(0, 210, 255, 0.6)); }
-        
+
         .nav-links { display: flex; gap: 20px; background: rgba(19, 26, 42, 0.6); padding: 8px 20px; border-radius: 16px; border: 1px solid rgba(255, 255, 255, 0.05); }
         .nav-link { color: #a0aec0; text-decoration: none; font-size: 15px; font-weight: 600; transition: 0.2s; cursor: pointer; background: none; border: none; font-family: inherit; }
         .nav-link:hover, .nav-link.active { color: #00d2ff; text-shadow: 0 0 8px rgba(0, 210, 255, 0.4); }
@@ -26,7 +26,6 @@
         .page-section { display: none; }
         .page-section.active { display: block; }
 
-        /* ANA SAYFA */
         .hero-container { max-width: 1000px; margin: 80px auto; text-align: center; padding: 0 20px; }
         .hero-container h1 { font-size: 56px; margin-bottom: 25px; background: linear-gradient(90deg, #00d2ff, #00ffc2); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
         .hero-container p { font-size: 20px; color: #a0aec0; line-height: 1.6; margin-bottom: 50px; padding: 0 50px; }
@@ -36,11 +35,11 @@
         .feature-card h3 { color: #00d2ff; margin-top: 0; font-size: 18px; display: flex; align-items: center; gap: 8px; }
         .feature-card p { font-size: 15px; margin-bottom: 0; color: #cbd5e0; line-height: 1.5; }
 
-        /* YENİ SWAP VE GRAFİK YERLEŞİMİ */
         .swap-page-wrapper { display: flex; justify-content: center; align-items: flex-start; gap: 30px; max-width: 1200px; margin: 60px auto; padding: 0 20px; transition: all 0.3s ease; }
         .chart-container { display: none; flex: 1; background: rgba(19, 26, 42, 0.65); backdrop-filter: blur(20px); border-radius: 24px; border: 1px solid rgba(255, 255, 255, 0.08); overflow: hidden; box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5); height: 480px; animation: fadeIn 0.4s ease; }
         .chart-container.active { display: block; }
         @keyframes fadeIn { from { opacity: 0; transform: translateX(-20px); } to { opacity: 1; transform: translateX(0); } }
+        .chart-empty-msg { color: #a0aec0; font-size: 14px; text-align: center; padding-top: 200px; }
 
         .swap-container { width: 100%; max-width: 440px; background: rgba(19, 26, 42, 0.65); backdrop-filter: blur(20px); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 24px; padding: 24px; box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5); transition: 0.3s; }
         .swap-header { display: flex; justify-content: space-between; align-items: center; font-size: 18px; font-weight: 600; color: #cbd5e0; margin-bottom: 25px; }
@@ -62,14 +61,13 @@
         .swap-btn { width: 100%; background: rgba(45, 55, 72, 0.6); color: #a0aec0; border: none; padding: 18px; border-radius: 16px; font-size: 18px; font-weight: bold; cursor: pointer; margin-top: 16px; transition: 0.3s; }
         .swap-btn.active { background: linear-gradient(90deg, #00d2ff 0%, #3a7bd5 100%); color: white; box-shadow: 0 4px 15px rgba(0, 210, 255, 0.3); }
 
-        /* SLIPPAGE MODAL */
         .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); backdrop-filter: blur(5px); z-index: 100; justify-content: center; align-items: center; }
         .modal-box { background: #131a2a; border: 1px solid rgba(0, 210, 255, 0.3); border-radius: 20px; padding: 24px; width: 320px; box-shadow: 0 10px 30px rgba(0,0,0,0.8); }
         .slippage-options { display: flex; gap: 10px; margin-top: 15px; }
         .slip-btn { background: rgba(255,255,255,0.1); border: none; color: white; padding: 8px 12px; border-radius: 8px; cursor: pointer; transition: 0.2s; flex: 1; }
         .slip-btn:hover, .slip-btn.active { background: #00d2ff; color: #000; font-weight:bold; }
         .slip-custom { width: 100%; background: transparent; border: 1px solid rgba(255,255,255,0.2); color: white; padding: 10px; border-radius: 8px; margin-top: 15px; outline: none; }
-        
+
         .stake-container { max-width: 1000px; margin: 60px auto; padding: 0 20px; display: grid; grid-template-columns: 1fr 1fr; gap: 30px; }
         .stake-card { background: rgba(19, 26, 42, 0.65); backdrop-filter: blur(20px); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 24px; padding: 30px; box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5); }
         .stake-card h2 { margin-top: 0; color: #00d2ff; font-size: 22px; }
@@ -82,29 +80,27 @@
 </head>
 <body>
 
-    <!-- ÜST MENÜ -->
     <div class="navbar">
-        <div class="brand" onclick="sayfaDegis('home')">
+        <div class="brand" onclick="sayfaDegis(event, 'home')">
             <svg class="robot-logo" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                 <rect x="3" y="11" width="18" height="10" rx="2" ry="2"></rect><circle cx="12" cy="5" r="2"></circle><path d="M12 7v4"></path><line x1="8" y1="16" x2="8.01" y2="16"></line><line x1="16" y1="16" x2="16.01" y2="16"></line>
             </svg>
             MetaDEX V2
         </div>
         <div class="nav-links">
-            <button class="nav-link active" onclick="sayfaDegis('home')">Ana Sayfa</button>
-            <button class="nav-link" onclick="sayfaDegis('swap')">Swap</button>
-            <button class="nav-link" onclick="sayfaDegis('stake')">Stake</button>
-            <button class="nav-link" onclick="sayfaDegis('bridge')">Bridge</button>
+            <button class="nav-link active" onclick="sayfaDegis(event, 'home')">Ana Sayfa</button>
+            <button class="nav-link" onclick="sayfaDegis(event, 'swap')">Swap</button>
+            <button class="nav-link" onclick="sayfaDegis(event, 'stake')">Stake</button>
+            <button class="nav-link" onclick="sayfaDegis(event, 'bridge')">Bridge</button>
         </div>
         <button class="connect-btn" id="connectBtn" onclick="cuzdanBagla()">Cüzdanı Bağla</button>
     </div>
 
-    <!-- ANA SAYFA -->
     <div id="homePage" class="page-section active">
         <div class="hero-container">
             <h1>Geleceğin Otonom RWA Ekosistemi</h1>
             <p>BIST100 hisseleri ve küresel emtiaları blokzincire taşıyan, yapay zeka destekli otonom oracle altyapısı ve TRYB tabanlı merkeziyetsiz borsa deneyimi.</p>
-            <button class="action-btn" style="max-width: 250px; margin: 0 auto; padding: 16px;" onclick="sayfaDegis('swap')">Hemen İşleme Başla</button>
+            <button class="action-btn" style="max-width: 250px; margin: 0 auto; padding: 16px;" onclick="sayfaDegis(event, 'swap')">Hemen İşleme Başla</button>
 
             <div class="features-grid">
                 <div class="feature-card">
@@ -123,7 +119,6 @@
         </div>
     </div>
 
-    <!-- SLIPPAGE MODAL (AYARLAR) -->
     <div id="slippageModal" class="modal-overlay" onclick="closeSlippage(event)">
         <div class="modal-box" onclick="event.stopPropagation()">
             <div style="display:flex; justify-content:space-between; align-items:center;">
@@ -140,12 +135,10 @@
         </div>
     </div>
 
-    <!-- SWAP SAYFASI -->
     <div id="swapPage" class="page-section">
         <div class="swap-page-wrapper">
-            
+
             <div class="chart-container" id="chartContainer">
-                <script type="text/javascript" src="https://s3.tradingview.com/tv.js"></script>
                 <div id="otonom_grafik" style="height: 100%; width: 100%;"></div>
             </div>
 
@@ -188,17 +181,16 @@
 
                 <button class="swap-btn" id="swapBtn" onclick="cuzdanBagla()">Cüzdanı Bağlayın</button>
             </div>
-            
+
         </div>
     </div>
 
-    <!-- STAKE SAYFASI -->
     <div id="stakePage" class="page-section">
         <div class="stake-container">
             <div class="stake-card">
                 <h2>Meta Coin Stake & Temettü</h2>
                 <div class="tier-badge" id="tierBadge">Mevcut Seviye: BRONZE 🥉</div>
-                <div class="stake-input-box"><input type="number" placeholder="Stake Miktarı" id="metaStakeAmount" oninput="tierHesapla()"></div>
+                <div class="stake-input-box"><input type="number" placeholder="Stake Miktarı" id="metaStakeAmount"></div>
                 <button class="action-btn">Meta Stake Et</button>
                 <div class="info-row"><span>Komisyon İndirimi:</span><strong id="discountText" style="color: #00d2ff;">%0 (Bronze)</strong></div>
             </div>
@@ -212,7 +204,6 @@
         </div>
     </div>
 
-    <!-- BRIDGE SAYFASI -->
     <div id="bridgePage" class="page-section">
         <div class="swap-container">
             <div class="swap-header"><span>Zincirler Arası Köprü</span><span>⚡</span></div>
@@ -223,21 +214,23 @@
         </div>
     </div>
 
-    <!-- JAVASCRIPT KODLARI (KIRILMAZ VE HIZLI MOTOR) -->
-    <!-- 📊 LIGHTWEIGHT CHARTS KÜTÜPHANESİ (TRADINGVIEW DERDİNE SON) -->
+    <!-- 📊 LIGHTWEIGHT CHARTS -->
     <script src="https://unpkg.com/lightweight-charts/dist/lightweight-charts.standalone.production.js"></script>
 
     <script>
-        function sayfaDegis(sayfaAdi) {
+        const API_BASE = "http://localhost:5000";
+
+        function sayfaDegis(e, sayfaAdi) {
             document.querySelectorAll('.page-section').forEach(el => el.classList.remove('active'));
             document.querySelectorAll('.nav-link').forEach(el => el.classList.remove('active'));
             document.getElementById(sayfaAdi + 'Page').classList.add('active');
-            event.target.classList.add('active');
+            if (e && e.target.classList.contains('nav-link')) e.target.classList.add('active');
         }
 
         function openSlippage() { document.getElementById('slippageModal').style.display = 'flex'; }
         function closeSlippage(e) { if(e) e.stopPropagation(); document.getElementById('slippageModal').style.display = 'none'; }
         function setSlippage(btn) { document.querySelectorAll('.slip-btn').forEach(b => b.classList.remove('active')); btn.classList.add('active'); }
+        function setCustomSlippage() { document.querySelectorAll('.slip-btn').forEach(b => b.classList.remove('active')); }
 
         let yonAlis = true;
         function yonDegistir() {
@@ -267,72 +260,89 @@
             } else { alert("MetaMask yüklü değil!"); }
         }
 
-        // --- 📈 LIGHTWEIGHT CHARTS İLE PROFESYONEL GRAFİK MOTORU (HATASIZ) ---
         let chartInstance = null;
         function toggleChart() {
             const chartEl = document.getElementById('chartContainer');
             chartEl.classList.toggle('active');
             if(chartEl.classList.contains('active')) {
-                setTimeout(grafikCiz, 100);
+                grafikCiz();
             }
         }
 
-        function grafikCiz() {
+        async function grafikCiz() {
             const container = document.getElementById('otonom_grafik');
-            container.innerHTML = ''; // Önceki grafiği temizle
-            
-            // Profesyonel TradingView Lightweight Chart Örneği
+            const varlik = document.getElementById("assetSelect").value;
+            container.innerHTML = '';
+
+            let veri = [];
+            try {
+                const res = await fetch(`${API_BASE}/api/history/${varlik}`);
+                if (!res.ok) throw new Error("history isteği başarısız");
+                const raw = await res.json();
+                veri = raw.map(r => ({ time: r.time, value: r.value }));
+            } catch (err) {
+                console.log("🔴 Geçmiş veri alınamadı:", err);
+            }
+
+            if (veri.length < 2) {
+                container.innerHTML = `<div class="chart-empty-msg">Bu varlık için henüz yeterli geçmiş veri yok.<br>Bot birkaç döngü çalıştıktan sonra grafik burada dolacak.</div>`;
+                return;
+            }
+
             chartInstance = LightweightCharts.createChart(container, {
                 layout: { background: { color: '#131a2a' }, textColor: '#ffffff' },
                 grid: { vertLines: { color: 'rgba(255, 255, 255, 0.05)' }, horzLines: { color: 'rgba(255, 255, 255, 0.05)' } },
                 width: container.clientWidth,
                 height: container.clientHeight,
+                timeScale: { timeVisible: true, secondsVisible: false },
             });
 
             const lineSeries = chartInstance.addLineSeries({ color: '#00d2ff', lineWidth: 2 });
-            
-            // Temsili otonom mum verileri (Python botu ile senkronize edilebilir)
-            lineSeries.setData([
-                { time: '2026-09-10', value: anlikFiyat * 0.98 },
-                { time: '2026-09-11', value: anlikFiyat * 0.99 },
-                { time: '2026-09-12', value: anlikFiyat * 0.97 },
-                { time: '2026-09-13', value: anlikFiyat * 1.01 },
-                { time: '2026-09-14', value: anlikFiyat * 0.995 },
-                { time: '2026-09-15', value: anlikFiyat },
-            ]);
+            lineSeries.setData(veri);
             chartInstance.timeScale().fitContent();
         }
 
-        // --- 🤖 PYTHON BOTUNUN FİYATLARINI ÇEKEN MOTOR ---
         const METADEX_ADDRESS = "0x61b87efd176a1bd2fefd2e5eae504d09bf21c29d";
         const minABI = ["function oraclePrices(string) view returns (uint256)"];
         let anlikFiyat = 295.5;
 
+        const yedekler = {
+            "tTHYAO": 295.5, "tBRENT": 2650, "tGLD": 2450, "tASELS": 60.5,
+            "tKCHOL": 205.1, "tBIMAS": 380, "tTUPRS": 165.4, "tSLV": 30.5,
+            "tCPR": 4.2, "tPLT": 950, "tNGAS": 2.8
+        };
+
+        async function botApiFiyatGetir(varlik) {
+            const res = await fetch(`${API_BASE}/api/price/${varlik}`);
+            if (!res.ok) throw new Error("bot API'den fiyat alınamadı");
+            const data = await res.json();
+            return data.price;
+        }
+
+        async function zincirFiyatGetir(varlik) {
+            const provider = new ethers.providers.JsonRpcProvider("https://api.avax-test.network/ext/bc/C/rpc");
+            const contract = new ethers.Contract(METADEX_ADDRESS, minABI, provider);
+            const fiyatWei = await contract.oraclePrices(varlik);
+            const formatlanmis = parseFloat(ethers.utils.formatUnits(fiyatWei, 18));
+            if (formatlanmis <= 0) throw new Error("zincirde sıfır fiyat");
+            return formatlanmis;
+        }
+
         async function fiyatGetir() {
             const varlik = document.getElementById("assetSelect").value;
+
             try {
-                const provider = new ethers.providers.JsonRpcProvider("https://api.avax-test.network/ext/bc/C/rpc");
-                const contract = new ethers.Contract(METADEX_ADDRESS, minABI, provider);
-                const fiyatWei = await contract.oraclePrices(varlik); 
-                
-                const formatlanmis = parseFloat(ethers.utils.formatUnits(fiyatWei, 18));
-                if (formatlanmis > 0) {
-                    anlikFiyat = formatlanmis;
-                    console.log("🟢 ZİNCİRDEN GELEN FİYAT:", varlik, anlikFiyat);
-                } else {
-                    throw new Error("Sıfır fiyat");
+                anlikFiyat = await botApiFiyatGetir(varlik);
+                console.log("🟢 BOT API'den gelen fiyat:", varlik, anlikFiyat);
+            } catch (err1) {
+                try {
+                    anlikFiyat = await zincirFiyatGetir(varlik);
+                } catch (err2) {
+                    anlikFiyat = yedekler[varlik] || 100;
                 }
-            } catch (err) {
-                console.log("🔴 Zincirden okunamadı, Python botunun yedek fiyatı aktif.");
-                const yedekler = { 
-                    "tTHYAO": 295.5, "tBRENT": 2650, "tGLD": 2450, "tASELS": 60.5, 
-                    "tKCHOL": 205.1, "tBIMAS": 380, "tTUPRS": 165.4, "tSLV": 30.5, 
-                    "tCPR": 4.2, "tPLT": 950, "tNGAS": 2.8 
-                };
-                anlikFiyat = yedekler[varlik] || 100;
             }
 
-            if(document.getElementById('chartContainer').classList.contains('active')) {
+            if (document.getElementById('chartContainer').classList.contains('active')) {
                 grafikCiz();
             }
             hesapla();
@@ -354,7 +364,10 @@
         document.getElementById("receiveAmount").addEventListener("input", hesapla);
         document.getElementById("assetSelect").addEventListener("change", fiyatGetir);
 
-        window.onload = () => { fiyatGetir(); };
+        window.onload = () => {
+            fiyatGetir();
+            setInterval(fiyatGetir, 15000);
+        };
     </script>
 </body>
 </html>
