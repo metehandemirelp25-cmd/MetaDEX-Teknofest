@@ -224,6 +224,7 @@
     </div>
 
     <!-- JAVASCRIPT KODLARI (TRADINGVIEW VE WEB3 BOT EKLENTİLİ) -->
+    <!-- BÜTÜN JAVASCRIPT KODLARI (WEB3 & TRADINGVIEW DÜZELTİLMİŞ) -->
     <script>
         function sayfaDegis(sayfaAdi) {
             document.querySelectorAll('.page-section').forEach(el => el.classList.remove('active'));
@@ -265,7 +266,7 @@
             } else { alert("MetaMask yüklü değil!"); }
         }
 
-        /* 📊 TRADINGVIEW GRAFİK MOTORU (HATASIZ) */
+        /* 📊 TRADINGVIEW HATASIZ GRAFİK MOTORU */
         const grafikSembolleri = {
             "tTHYAO": "BIST:THYAO", "tASELS": "BIST:ASELS", "tKCHOL": "BIST:KCHOL", "tBIMAS": "BIST:BIMAS", "tTUPRS": "BIST:TUPRS",
             "tGLD": "FX_IDC:XAUTRYG", "tSLV": "FX_IDC:XAGTRYG", "tCPR": "COMEX:HG1!", "tPLT": "TVC:PLATINUM",
@@ -274,7 +275,7 @@
 
         function grafigiGuncelle(sembolKodu) {
             const container = document.getElementById('otonom_grafik');
-            container.innerHTML = ''; // Eski grafiği temizler, üst üste binip çökmesini önler
+            container.innerHTML = ''; // ESKİ GRAFİĞİ SİL (BIST HATASINI ÇÖZER!)
             
             new TradingView.widget({
                 "autosize": true, "symbol": sembolKodu, "interval": "D", "timezone": "Europe/Istanbul", "theme": "dark",
@@ -302,7 +303,7 @@
         }
 
         /* 🤖 OTONOM FİYAT HESAPLAMA (BOT ENTEGRASYONU) */
-        // Senin botunun beslediği kontrat adresin
+        // Kontratın ABI'si (Sadece fiyat okuma fonksiyonu)
         const METADEX_ADDRESS = "0x61b87efd176a1bd2fefd2e5eae504d09bf21c29d";
         const minABI = [
             "function assetPrices(string) view returns (uint256)" 
@@ -331,10 +332,10 @@
                     gercekFiyat = parseFloat(ethers.utils.formatUnits(fiyatWei, 18));
                 }
             } catch (error) {
-                console.log("Blockchain okuma hatası, yedek fiyata geçiliyor...");
+                console.log("Blockchain okuma hatası, yedek (simüle) fiyata geçiliyor...");
             }
 
-            // Eğer MetaMask bağlı değilse sitenin hesaplama yapabilmesi için simüle fiyatlar
+            // Eğer blockchain'den çekemezse sitenin çökmemesi için senin botun mantığıyla simüle edilmiş yedek fiyatlar
             if(gercekFiyat === 0) {
                 if(secilenVarlik === "tTHYAO") gercekFiyat = 295.50; if(secilenVarlik === "tBRENT") gercekFiyat = 2650.00; 
                 if(secilenVarlik === "tGLD") gercekFiyat = 2450.00; if(secilenVarlik === "tASELS") gercekFiyat = 60.50;
