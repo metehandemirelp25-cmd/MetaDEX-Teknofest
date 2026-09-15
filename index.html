@@ -105,7 +105,7 @@
             <div class="features-grid">
                 <div class="feature-card">
                     <h3>⚡ Otonom Oracle</h3>
-                    <p>Piyasa verileri anlık olarak Yahoo Finance üzerinden çekilip Avalanche Fuji ağındaki akıllı sözleşmelere otomatik işlenir.</p>
+                    <p>Piyasa verileri anlık olarak Yahoo Finance üzerinden çekilip Avalanche Fuji ağındaki akıllı sözleşmelere otomatik işlenir[cite: 1].</p>
                 </div>
                 <div class="feature-card">
                     <h3>💎 Temettü Destekli Stake</h3>
@@ -285,7 +285,7 @@
             }
 
             if (veri.length < 2) {
-                container.innerHTML = `<div class="chart-empty-msg">Bu varlık için henüz yeterli geçmiş veri yok.<br>Bot birkaç döngü çalıştıktan sonra grafik burada dolacak.</div>`;
+                container.innerHTML = `<div class="chart-empty-msg">Bu varlık için yeterli geçmiş veri birikiyor.<br>Bot arka planda çalıştıkça grafik dolacaktır.</div>`;
                 return;
             }
 
@@ -302,15 +302,7 @@
             chartInstance.timeScale().fitContent();
         }
 
-        const METADEX_ADDRESS = "0x61b87efd176a1bd2fefd2e5eae504d09bf21c29d";
-        const minABI = ["function oraclePrices(string) view returns (uint256)"];
-        let anlikFiyat = 295.5;
-
-        const yedekler = {
-            "tTHYAO": 295.5, "tBRENT": 2650, "tGLD": 2450, "tASELS": 60.5,
-            "tKCHOL": 205.1, "tBIMAS": 380, "tTUPRS": 165.4, "tSLV": 30.5,
-            "tCPR": 4.2, "tPLT": 950, "tNGAS": 2.8
-        };
+        let anlikFiyat = 0;
 
         async function botApiFiyatGetir(varlik) {
             const res = await fetch(`${API_BASE}/api/price/${varlik}`);
@@ -319,29 +311,20 @@
             return data.price;
         }
 
-        async function zincirFiyatGetir(varlik) {
-            const provider = new ethers.providers.JsonRpcProvider("https://api.avax-test.network/ext/bc/C/rpc");
-            const contract = new ethers.Contract(METADEX_ADDRESS, minABI, provider);
-            const fiyatWei = await contract.oraclePrices(varlik);
-            const formatlanmis = parseFloat(ethers.utils.formatUnits(fiyatWei, 18));
-            if (formatlanmis <= 0) throw new Error("zincirde sıfır fiyat");
-            return formatlanmis;
-        }
-
         async function fiyatGetir() {
             const varlik = document.getElementById("assetSelect").value;
+            const rec = document.getElementById("receiveAmount");
+            rec.placeholder = "Bot bekleniyor...";
 
             try {
                 anlikFiyat = await botApiFiyatGetir(varlik);
-                console.log("🟢 BOT API'den gelen fiyat:", varlik, anlikFiyat);
-            } catch (err1) {
-                try {
-                    anlikFiyat = await zincirFiyatGetir(varlik);
-                } catch (err2) {
-                    anlikFiyat = yedekler[varlik] || 100;
-                }
+                console.log("🟢 BOT API'den gelen gerçek fiyat:", varlik, anlikFiyat);
+            } catch (err) {
+                console.log("🔴 Bot API'ye ulaşılamadı:", err.message);
+                anlikFiyat = 0; // Yedek yok, yanlış fiyat göstermektense 0 yapıyoruz!
             }
 
+            rec.placeholder = "0.0";
             if (document.getElementById('chartContainer').classList.contains('active')) {
                 grafikCiz();
             }
@@ -353,10 +336,15 @@
             const rec = document.getElementById("receiveAmount");
             const miktar = parseFloat(yonAlis ? pay.value : rec.value) || 0;
 
+            if (anlikFiyat <= 0) {
+                if(yonAlis) rec.value = "Veri Yok"; else pay.value = "Veri Yok";
+                return;
+            }
+
             if(yonAlis) {
-                rec.value = (anlikFiyat > 0 && miktar > 0) ? (miktar / anlikFiyat).toFixed(4) : "";
+                rec.value = miktar > 0 ? (miktar / anlikFiyat).toFixed(4) : "";
             } else {
-                pay.value = (anlikFiyat > 0 && miktar > 0) ? (miktar * anlikFiyat).toFixed(2) : "";
+                pay.value = miktar > 0 ? (miktar * anlikFiyat).toFixed(2) : "";
             }
         }
 
@@ -366,7 +354,7 @@
 
         window.onload = () => {
             fiyatGetir();
-            setInterval(fiyatGetir, 15000);
+            setInterval(fiyatGetir, 15000); // Her 15 saniyede bir bot API'sini yokla
         };
     </script>
 </body>
