@@ -10,11 +10,7 @@
     
     <style>
         * { box-sizing: border-box; }
-        body {
-            margin: 0; background-color: #0b0e14;
-            background-image: radial-gradient(at 0% 0%, rgba(0, 210, 255, 0.12) 0px, transparent 50%), radial-gradient(at 100% 0%, rgba(58, 123, 213, 0.12) 0px, transparent 50%), radial-gradient(at 100% 100%, rgba(0, 255, 194, 0.08) 0px, transparent 50%);
-            color: #FFFFFF; font-family: 'Segoe UI', sans-serif; min-height: 100vh;
-        }
+        body { margin: 0; background-color: #0b0e14; background-image: radial-gradient(at 0% 0%, rgba(0, 210, 255, 0.12) 0px, transparent 50%), radial-gradient(at 100% 0%, rgba(58, 123, 213, 0.12) 0px, transparent 50%), radial-gradient(at 100% 100%, rgba(0, 255, 194, 0.08) 0px, transparent 50%); color: #FFFFFF; font-family: 'Segoe UI', sans-serif; min-height: 100vh; }
 
         .navbar { display: flex; justify-content: space-between; align-items: center; padding: 20px 40px; background: rgba(11, 14, 20, 0.8); backdrop-filter: blur(15px); border-bottom: 1px solid rgba(255, 255, 255, 0.05); }
         .brand { display: flex; align-items: center; gap: 12px; font-size: 22px; font-weight: bold; color: #fff; text-shadow: 0 0 10px rgba(0, 210, 255, 0.4); cursor: pointer; }
@@ -40,30 +36,9 @@
         .feature-card h3 { color: #00d2ff; margin-top: 0; font-size: 18px; display: flex; align-items: center; gap: 8px; }
         .feature-card p { font-size: 15px; margin-bottom: 0; color: #cbd5e0; line-height: 1.5; }
 
-        /* YENİ SWAP VE GRAFİK YERLEŞİMİ (YAN YANA) */
-        .swap-page-wrapper {
-            display: flex;
-            justify-content: center;
-            align-items: flex-start;
-            gap: 30px;
-            max-width: 1200px;
-            margin: 60px auto;
-            padding: 0 20px;
-            transition: all 0.3s ease;
-        }
-
-        .chart-container {
-            display: none; /* Başlangıçta gizli */
-            flex: 1;
-            background: rgba(19, 26, 42, 0.65);
-            backdrop-filter: blur(20px);
-            border-radius: 24px;
-            border: 1px solid rgba(255, 255, 255, 0.08);
-            overflow: hidden;
-            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5);
-            height: 480px;
-            animation: fadeIn 0.4s ease;
-        }
+        /* YENİ SWAP VE GRAFİK YERLEŞİMİ */
+        .swap-page-wrapper { display: flex; justify-content: center; align-items: flex-start; gap: 30px; max-width: 1200px; margin: 60px auto; padding: 0 20px; transition: all 0.3s ease; }
+        .chart-container { display: none; flex: 1; background: rgba(19, 26, 42, 0.65); backdrop-filter: blur(20px); border-radius: 24px; border: 1px solid rgba(255, 255, 255, 0.08); overflow: hidden; box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5); height: 480px; animation: fadeIn 0.4s ease; }
         .chart-container.active { display: block; }
         @keyframes fadeIn { from { opacity: 0; transform: translateX(-20px); } to { opacity: 1; transform: translateX(0); } }
 
@@ -124,7 +99,7 @@
         <button class="connect-btn" id="connectBtn" onclick="cuzdanBagla()">Cüzdanı Bağla</button>
     </div>
 
-    <!-- 🏠 ANA SAYFA (HEYBETLİ HALİ) -->
+    <!-- ANA SAYFA -->
     <div id="homePage" class="page-section active">
         <div class="hero-container">
             <h1>Geleceğin Otonom RWA Ekosistemi</h1>
@@ -165,37 +140,30 @@
         </div>
     </div>
 
-    <!-- 1️⃣ SWAP SAYFASI (YAN YANA YERLEŞİM) -->
+    <!-- SWAP SAYFASI -->
     <div id="swapPage" class="page-section">
         <div class="swap-page-wrapper">
             
-            <!-- 📊 GRAFİK (SOLDA, TIKLAYINCA AÇILIR) -->
             <div class="chart-container" id="chartContainer">
                 <script type="text/javascript" src="https://s3.tradingview.com/tv.js"></script>
                 <div id="otonom_grafik" style="height: 100%; width: 100%;"></div>
             </div>
 
-            <!-- 🔄 SWAP KUTUSU (SAĞDA VEYA ORTADA) -->
             <div class="swap-container">
                 <div class="swap-header">
-                    <!-- Grafik Aç/Kapat Butonu -->
                     <span class="icon-btn" onclick="toggleChart()" title="Grafiği Aç/Kapat">📊</span>
                     <span>RWA Takas Merkezi</span>
-                    <!-- Ayarlar Butonu -->
                     <span class="icon-btn" onclick="openSlippage()" title="Ayarlar">⚙️</span>
                 </div>
 
                 <div id="swapFlexContainer" style="display: flex; flex-direction: column;">
-                    <!-- 1. KUTU (TRYB) -->
                     <div class="asset-box" id="box1" style="order: 1;">
                         <input type="number" placeholder="0.0" id="payAmount">
                         <button class="asset-dropdown" style="cursor: default;">TRYB</button>
                     </div>
 
-                    <!-- YÖN OKU (TIKLANABİLİR) -->
                     <div class="arrow-down" id="swapArrow" style="order: 2;" title="Yönü Değiştir" onclick="yonDegistir()">⇅</div>
 
-                    <!-- 2. KUTU (VARLIKLAR) -->
                     <div class="asset-box" id="box2" style="order: 3;">
                         <input type="number" placeholder="0.0" id="receiveAmount" readonly>
                         <select class="asset-dropdown" id="assetSelect">
@@ -224,7 +192,7 @@
         </div>
     </div>
 
-    <!-- 2️⃣ STAKE SAYFASI -->
+    <!-- STAKE SAYFASI -->
     <div id="stakePage" class="page-section">
         <div class="stake-container">
             <div class="stake-card">
@@ -244,7 +212,7 @@
         </div>
     </div>
 
-    <!-- 3️⃣ BRIDGE SAYFASI -->
+    <!-- BRIDGE SAYFASI -->
     <div id="bridgePage" class="page-section">
         <div class="swap-container">
             <div class="swap-header"><span>Zincirler Arası Köprü</span><span>⚡</span></div>
@@ -255,7 +223,7 @@
         </div>
     </div>
 
-    <!-- BÜTÜN JAVASCRIPT KODLARI -->
+    <!-- JAVASCRIPT KODLARI (TRADINGVIEW VE WEB3 BOT EKLENTİLİ) -->
     <script>
         function sayfaDegis(sayfaAdi) {
             document.querySelectorAll('.page-section').forEach(el => el.classList.remove('active'));
@@ -264,70 +232,83 @@
             event.target.classList.add('active');
         }
 
-        /* AYARLAR (SLIPPAGE) FONKSİYONLARI */
+        /* AYARLAR (SLIPPAGE) */
         function openSlippage() { document.getElementById('slippageModal').style.display = 'flex'; }
         function closeSlippage(e) { if(e) e.stopPropagation(); document.getElementById('slippageModal').style.display = 'none'; }
         function setSlippage(btn) { document.querySelectorAll('.slip-btn').forEach(b => b.classList.remove('active')); btn.classList.add('active'); document.querySelector('.slip-custom').value = ''; }
         function setCustomSlippage() { document.querySelectorAll('.slip-btn').forEach(b => b.classList.remove('active')); }
 
-        /* GRAFİK AÇ/KAPAT FONKSİYONU */
+        /* GRAFİK AÇ/KAPAT */
         function toggleChart() {
             const chartEl = document.getElementById('chartContainer');
             chartEl.classList.toggle('active');
-            // Grafik görünür olduğunda yüklesin diye ufak bir bekleme (boyut hatasını önler)
             if(chartEl.classList.contains('active')) {
                 setTimeout(sistemiTetikle, 50);
             }
         }
 
+        /* 🦊 WEB3 METAMASK BAĞLANTISI */
+        let provider, signer, userAddress;
         async function cuzdanBagla() {
             if (window.ethereum) {
                 try {
-                    const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
-                    const account = accounts[0];
-                    document.getElementById("connectBtn").innerText = account.substring(0, 6) + "..." + account.substring(account.length - 4);
+                    provider = new ethers.providers.Web3Provider(window.ethereum);
+                    const accounts = await provider.send("eth_requestAccounts", []);
+                    signer = provider.getSigner();
+                    userAddress = accounts[0];
+                    
+                    document.getElementById("connectBtn").innerText = userAddress.substring(0, 6) + "..." + userAddress.substring(userAddress.length - 4);
                     const swapBtn = document.getElementById("swapBtn");
-                    swapBtn.innerText = "Takası Onayla"; swapBtn.classList.add("active");
-                } catch (error) {}
+                    swapBtn.innerText = "Takası Onayla"; 
+                    swapBtn.classList.add("active");
+                } catch (error) { console.log("Cüzdan bağlanmadı."); }
             } else { alert("MetaMask yüklü değil!"); }
         }
 
-        // Hata vermemesi için orijinal emtia sembolleri eklendi!
+        /* 📊 TRADINGVIEW GRAFİK MOTORU (HATASIZ) */
         const grafikSembolleri = {
             "tTHYAO": "BIST:THYAO", "tASELS": "BIST:ASELS", "tKCHOL": "BIST:KCHOL", "tBIMAS": "BIST:BIMAS", "tTUPRS": "BIST:TUPRS",
             "tGLD": "FX_IDC:XAUTRYG", "tSLV": "FX_IDC:XAGTRYG", "tCPR": "COMEX:HG1!", "tPLT": "TVC:PLATINUM",
             "tNGAS": "NYMEX:NG1!", "tBRENT": "TVC:UKOIL"  
         };
 
-        let tvWidget;
         function grafigiGuncelle(sembolKodu) {
-            tvWidget = new TradingView.widget({
+            const container = document.getElementById('otonom_grafik');
+            container.innerHTML = ''; // Eski grafiği temizler, üst üste binip çökmesini önler
+            
+            new TradingView.widget({
                 "autosize": true, "symbol": sembolKodu, "interval": "D", "timezone": "Europe/Istanbul", "theme": "dark",
                 "style": "1", "locale": "tr", "enable_publishing": false, "backgroundColor": "#131a2a", "gridColor": "rgba(255, 255, 255, 0.05)",
                 "hide_top_toolbar": false, "hide_legend": true, "save_image": false, "container_id": "otonom_grafik"
             });
         }
 
-        let yonAlis = true; // True: TRYB verip Asset alıyoruz. False: Asset satıp TRYB alıyoruz.
+        /* ⇅ YÖN DEĞİŞTİRME */
+        let yonAlis = true;
         function yonDegistir() {
             yonAlis = !yonAlis;
-            const b1 = document.getElementById('box1');
-            const b2 = document.getElementById('box2');
-            const payInput = document.getElementById('payAmount');
-            const recInput = document.getElementById('receiveAmount');
+            const b1 = document.getElementById('box1'); const b2 = document.getElementById('box2');
+            const payInput = document.getElementById('payAmount'); const recInput = document.getElementById('receiveAmount');
 
             if(yonAlis) {
-                b1.style.order = "1"; b2.style.order = "3"; // TRYB üstte, Asset altta
+                b1.style.order = "1"; b2.style.order = "3";
                 payInput.removeAttribute('readonly'); recInput.setAttribute('readonly', 'true');
             } else {
-                b1.style.order = "3"; b2.style.order = "1"; // Asset üstte, TRYB altta
+                b1.style.order = "3"; b2.style.order = "1";
                 recInput.removeAttribute('readonly'); payInput.setAttribute('readonly', 'true');
             }
             payInput.value = ""; recInput.value = "";
             sistemiTetikle();
         }
 
-        function sistemiTetikle() {
+        /* 🤖 OTONOM FİYAT HESAPLAMA (BOT ENTEGRASYONU) */
+        // Senin botunun beslediği kontrat adresin
+        const METADEX_ADDRESS = "0x61b87efd176a1bd2fefd2e5eae504d09bf21c29d";
+        const minABI = [
+            "function assetPrices(string) view returns (uint256)" 
+        ];
+
+        async function sistemiTetikle() {
             const selectEl = document.getElementById("assetSelect");
             const payInput = document.getElementById("payAmount");
             const recInput = document.getElementById("receiveAmount");
@@ -335,25 +316,38 @@
             
             const secilenVarlik = selectEl.value;
             
-            // Eğer grafik kutusu açıksa grafiği güncelle
             if(document.getElementById('chartContainer').classList.contains('active')) {
                 if(grafikSembolleri[secilenVarlik]) grafigiGuncelle(grafikSembolleri[secilenVarlik]);
             }
 
-            let tahminiFiyat = 0;
-            if(secilenVarlik === "tTHYAO") tahminiFiyat = 295.50; if(secilenVarlik === "tBRENT") tahminiFiyat = 2650.00; 
-            if(secilenVarlik === "tGLD") tahminiFiyat = 2450.00; if(secilenVarlik === "tASELS") tahminiFiyat = 60.50;
-            if(secilenVarlik === "tKCHOL") tahminiFiyat = 205.10; if(secilenVarlik === "tBIMAS") tahminiFiyat = 380.00;
-            if(secilenVarlik === "tTUPRS") tahminiFiyat = 165.40; if(secilenVarlik === "tSLV") tahminiFiyat = 30.50;
-            if(secilenVarlik === "tCPR") tahminiFiyat = 4.20; if(secilenVarlik === "tPLT") tahminiFiyat = 950.00;
-            if(secilenVarlik === "tNGAS") tahminiFiyat = 2.80;
+            let gercekFiyat = 0;
+            const miktar = parseFloat(yonAlis ? payInput.value : recInput.value) || 0;
+
+            try {
+                // EĞER CÜZDAN BAĞLIYSA BLOCKCHAIN'DEN BOTUN FİYATINI ÇEK!
+                if(provider) {
+                    const contract = new ethers.Contract(METADEX_ADDRESS, minABI, provider);
+                    const fiyatWei = await contract.assetPrices(secilenVarlik); 
+                    gercekFiyat = parseFloat(ethers.utils.formatUnits(fiyatWei, 18));
+                }
+            } catch (error) {
+                console.log("Blockchain okuma hatası, yedek fiyata geçiliyor...");
+            }
+
+            // Eğer MetaMask bağlı değilse sitenin hesaplama yapabilmesi için simüle fiyatlar
+            if(gercekFiyat === 0) {
+                if(secilenVarlik === "tTHYAO") gercekFiyat = 295.50; if(secilenVarlik === "tBRENT") gercekFiyat = 2650.00; 
+                if(secilenVarlik === "tGLD") gercekFiyat = 2450.00; if(secilenVarlik === "tASELS") gercekFiyat = 60.50;
+                if(secilenVarlik === "tKCHOL") gercekFiyat = 205.10; if(secilenVarlik === "tBIMAS") gercekFiyat = 380.00;
+                if(secilenVarlik === "tTUPRS") gercekFiyat = 165.40; if(secilenVarlik === "tSLV") gercekFiyat = 30.50;
+                if(secilenVarlik === "tCPR") gercekFiyat = 4.20; if(secilenVarlik === "tPLT") gercekFiyat = 950.00;
+                if(secilenVarlik === "tNGAS") gercekFiyat = 2.80;
+            }
             
             if(yonAlis) {
-                const miktar = parseFloat(payInput.value) || 0;
-                if(tahminiFiyat > 0 && miktar > 0) recInput.value = (miktar / tahminiFiyat).toFixed(4); else recInput.value = "";
+                if(gercekFiyat > 0 && miktar > 0) recInput.value = (miktar / gercekFiyat).toFixed(4); else recInput.value = "";
             } else {
-                const miktar = parseFloat(recInput.value) || 0;
-                if(tahminiFiyat > 0 && miktar > 0) payInput.value = (miktar * tahminiFiyat).toFixed(2); else payInput.value = "";
+                if(gercekFiyat > 0 && miktar > 0) payInput.value = (miktar * gercekFiyat).toFixed(2); else payInput.value = "";
             }
         }
 
