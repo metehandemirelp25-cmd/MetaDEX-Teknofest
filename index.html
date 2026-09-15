@@ -202,7 +202,7 @@
     </div>
 
     <script>
-        const API_BASE = "https://api.allorigins.win/raw?url=" + encodeURIComponent("http://13.53.126.145:5000");
+        const API_BASE = "http://13.53.126.145:5000";
         let cüzdanBagliMi = false;
 
         function sayfaDegis(e, sayfaAdi) {
@@ -287,7 +287,7 @@
             if(chartEl.classList.contains('active')) setTimeout(grafikCiz, 50);
         }
 
-        let isDrawing = false; // Çakışmaları önleyen kalkan
+        let isDrawing = false;
 
         async function grafikCiz() {
             if (isDrawing) return; 
@@ -314,7 +314,6 @@
                     console.error("Veri çekilemedi:", err);
                 }
 
-                // Her seferinde ekranı temizle ve sağlam kütüphane ile yeniden çiz
                 container.innerHTML = '';
                 chartInstance = null;
                 
@@ -338,7 +337,7 @@
                 chartInstance.timeScale().fitContent();
 
             } finally {
-                isDrawing = false; // Kalkanı indir
+                isDrawing = false;
             }
         }
 
@@ -351,7 +350,6 @@
                 anlikFiyat = data.price;
             } catch (err) { anlikFiyat = 0; }
             hesapla();
-            if (document.getElementById('chartContainer').classList.contains('active')) grafikCiz();
         }
 
         function hesapla() {
@@ -373,6 +371,7 @@
         window.onload = () => {
             fiyatGetir();
             setInterval(fiyatGetir, 15000);
+            setTimeout(grafikCiz, 100);
         };
     </script>
 </body>
