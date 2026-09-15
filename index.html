@@ -1,0 +1,525 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MetaDEX V2 | Otonom RWA & Temettü Borsası</title>
+    <!-- Web3 bağlantısı için Ethers.js -->
+    <script src="https://cdn.ethers.io/lib/ethers-5.7.2.umd.min.js"></script>
+    
+    <style>
+        * { box-sizing: border-box; }
+
+        body {
+            margin: 0;
+            background-color: #0b0e14;
+            background-image: 
+                radial-gradient(at 0% 0%, rgba(0, 210, 255, 0.12) 0px, transparent 50%),
+                radial-gradient(at 100% 0%, rgba(58, 123, 213, 0.12) 0px, transparent 50%),
+                radial-gradient(at 100% 100%, rgba(0, 255, 194, 0.08) 0px, transparent 50%);
+            color: #FFFFFF;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            min-height: 100vh;
+        }
+
+        /* 🛸 ÜST MENÜ (NAVBAR) */
+        .navbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px 40px;
+            background: rgba(11, 14, 20, 0.8);
+            backdrop-filter: blur(15px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 22px;
+            font-weight: bold;
+            color: #fff;
+            text-shadow: 0 0 10px rgba(0, 210, 255, 0.4);
+            cursor: pointer;
+        }
+        .robot-logo {
+            width: 36px;
+            height: 36px;
+            stroke: #00d2ff;
+            filter: drop-shadow(0 0 6px rgba(0, 210, 255, 0.6));
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 20px;
+            background: rgba(19, 26, 42, 0.6);
+            padding: 8px 20px;
+            border-radius: 16px;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+        .nav-link {
+            color: #a0aec0;
+            text-decoration: none;
+            font-size: 15px;
+            font-weight: 600;
+            transition: 0.2s;
+            cursor: pointer;
+            background: none;
+            border: none;
+            font-family: inherit;
+        }
+        .nav-link:hover, .nav-link.active {
+            color: #00d2ff;
+            text-shadow: 0 0 8px rgba(0, 210, 255, 0.4);
+        }
+
+        .connect-btn {
+            background: linear-gradient(90deg, #00d2ff 0%, #3a7bd5 100%);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 14px;
+            font-size: 15px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: 0.3s;
+            box-shadow: 0 4px 15px rgba(0, 210, 255, 0.3);
+        }
+        .connect-btn:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(0, 210, 255, 0.5); }
+
+        .page-section { display: none; }
+        .page-section.active { display: block; }
+
+        /* 🏠 ANA SAYFA (HERO SECTION) */
+        .hero-container {
+            max-width: 900px;
+            margin: 60px auto;
+            text-align: center;
+            padding: 0 20px;
+        }
+        .hero-container h1 {
+            font-size: 48px;
+            margin-bottom: 20px;
+            background: linear-gradient(90deg, #00d2ff, #00ffc2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .hero-container p {
+            font-size: 18px;
+            color: #a0aec0;
+            line-height: 1.6;
+            margin-bottom: 40px;
+        }
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+            text-align: left;
+            margin-top: 40px;
+        }
+        .feature-card {
+            background: rgba(19, 26, 42, 0.65);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 20px;
+            padding: 24px;
+        }
+        .feature-card h3 { color: #00d2ff; margin-top: 0; }
+        .feature-card p { font-size: 14px; margin-bottom: 0; color: #cbd5e0; }
+
+        /* 💎 SWAP MERKEZİ */
+        .swap-container {
+            max-width: 480px;
+            margin: 60px auto;
+            background: rgba(19, 26, 42, 0.65);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 24px;
+            padding: 24px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5);
+        }
+
+        .swap-header {
+            display: flex;
+            justify-content: space-between;
+            font-size: 18px;
+            font-weight: 600;
+            color: #cbd5e0;
+            margin-bottom: 20px;
+        }
+
+        .asset-box {
+            background-color: rgba(11, 14, 20, 0.85);
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            border-radius: 18px;
+            padding: 18px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .asset-box input {
+            background: transparent;
+            border: none;
+            color: white;
+            font-size: 26px;
+            outline: none;
+            width: 55%;
+        }
+        .asset-box input::-webkit-outer-spin-button,
+        .asset-box input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+        .asset-box input[type=number] { -moz-appearance: textfield; }
+        .asset-box input::placeholder { color: #4a5568; }
+
+        .asset-dropdown {
+            background: rgba(45, 55, 72, 0.8);
+            color: white;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 10px 16px;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            outline: none;
+        }
+
+        .arrow-down {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 32px;
+            width: 32px;
+            margin: -14px auto;
+            background: #1a202c;
+            border: 4px solid #131a2a;
+            border-radius: 10px;
+            color: #00d2ff;
+            font-size: 14px;
+            position: relative;
+            z-index: 2;
+        }
+
+        .swap-btn {
+            width: 100%;
+            background: rgba(45, 55, 72, 0.6);
+            color: #a0aec0;
+            border: none;
+            padding: 18px;
+            border-radius: 16px;
+            font-size: 18px;
+            font-weight: bold;
+            cursor: pointer;
+            margin-top: 16px;
+            transition: 0.3s;
+        }
+        .swap-btn.active {
+            background: linear-gradient(90deg, #00d2ff 0%, #3a7bd5 100%);
+            color: white;
+            box-shadow: 0 4px 15px rgba(0, 210, 255, 0.3);
+        }
+
+        /* 🥩 STAKE SAYFASI */
+        .stake-container {
+            max-width: 1000px;
+            margin: 60px auto;
+            padding: 0 20px;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+        }
+
+        .stake-card {
+            background: rgba(19, 26, 42, 0.65);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 24px;
+            padding: 30px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5);
+        }
+
+        .stake-card h2 { margin-top: 0; color: #00d2ff; font-size: 22px; }
+        .tier-badge {
+            display: inline-block;
+            background: rgba(0, 210, 255, 0.15);
+            color: #00d2ff;
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: bold;
+            margin-bottom: 20px;
+            border: 1px solid rgba(0, 210, 255, 0.3);
+        }
+
+        .stake-input-box {
+            background: rgba(11, 14, 20, 0.85);
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            border-radius: 16px;
+            padding: 16px;
+            margin-bottom: 20px;
+        }
+        .stake-input-box input {
+            width: 100%;
+            background: transparent;
+            border: none;
+            color: white;
+            font-size: 24px;
+            outline: none;
+        }
+
+        .action-btn {
+            width: 100%;
+            background: linear-gradient(90deg, #00d2ff 0%, #3a7bd5 100%);
+            color: white;
+            border: none;
+            padding: 14px;
+            border-radius: 14px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+        .action-btn:hover { opacity: 0.9; }
+
+        .info-row {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 15px;
+            font-size: 14px;
+            color: #a0aec0;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- ÜST MENÜ -->
+    <div class="navbar">
+        <div class="brand" onclick="sayfaDegis('home')">
+            <svg class="robot-logo" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="3" y="11" width="18" height="10" rx="2" ry="2"></rect>
+                <circle cx="12" cy="5" r="2"></circle>
+                <path d="M12 7v4"></path>
+                <line x1="8" y1="16" x2="8.01" y2="16"></line>
+                <line x1="16" y1="16" x2="16.01" y2="16"></line>
+            </svg>
+            MetaDEX V2
+        </div>
+
+        <div class="nav-links">
+            <button class="nav-link active" onclick="sayfaDegis('home')">Ana Sayfa</button>
+            <button class="nav-link" onclick="sayfaDegis('swap')">Swap</button>
+            <button class="nav-link" onclick="sayfaDegis('stake')">Stake</button>
+            <button class="nav-link" onclick="sayfaDegis('bridge')">Bridge</button>
+        </div>
+
+        <button class="connect-btn" id="connectBtn" onclick="cuzdanBagla()">Cüzdanı Bağla</button>
+    </div>
+
+    <!-- 🏠 ANA SAYFA (HÖRO) -->
+    <div id="homePage" class="page-section active">
+        <div class="hero-container">
+            <h1>Geleceğin Otonom RWA Ekosistemi</h1>
+            <p>BIST100 hisseleri ve küresel emtiaları blokzincire taşıyan, yapay zeka destekli otonom oracle altyapısı ve TRYB tabanlı merkeziyetsiz borsa deneyimi.</p>
+            <button class="action-btn" style="max-width: 250px; margin: 0 auto; padding: 16px;" onclick="sayfaDegis('swap')">Hemen İşleme Başla</button>
+
+            <div class="features-grid">
+                <div class="feature-card">
+                    <h3>⚡ Otonom Oracle</h3>
+                    <p>Piyasa verileri anlık olarak Yahoo Finance üzerinden çekilip Avalanche Fuji ağındaki akıllı sözleşmelere otomatik işlenir.</p>
+                </div>
+                <div class="feature-card">
+                    <h3>💎 Temettü Destekli Stake</h3>
+                    <p>Meta coin stake ederek platform gelirlerinden (hisselerin temettü havuzundan) pay alabilir, tier seviyenizi yükseltebilirsiniz.</p>
+                </div>
+                <div class="feature-card">
+                    <h3>🇹🇷 Yerel & Küresel RWA</h3>
+                    <p>THY, Aselsan, Altın ve Brent Petrol gibi en popüler varlıkları TRYB ile 7/24 kesintisiz takas edin.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 1️⃣ SWAP SAYFASI -->
+    <div id="swapPage" class="page-section">
+        <div class="swap-container">
+            <div class="swap-header">
+                <span>RWA Takas Merkezi</span>
+                <span>⚙️</span>
+            </div>
+
+            <div class="asset-box">
+                <input type="number" placeholder="0.0" id="payAmount">
+                <button class="asset-dropdown">TRYB</button>
+            </div>
+
+            <div class="arrow-down">↓</div>
+
+            <div class="asset-box">
+                <input type="number" placeholder="0.0" id="receiveAmount" readonly>
+                <select class="asset-dropdown" id="assetSelect">
+                    <optgroup label="BIST 100 Hisseleri">
+                        <option value="tTHYAO">tTHYAO (Thy)</option>
+                        <option value="tASELS">tASELS (Aselsan)</option>
+                        <option value="tKCHOL">tKCHOL (Koç Holding)</option>
+                        <option value="tBIMAS">tBIMAS (Bim)</option>
+                        <option value="tTUPRS">tTUPRS (Tüpraş)</option>
+                    </optgroup>
+                    <optgroup label="Küresel Emtialar">
+                        <option value="tGLD">tGLD (Altın)</option>
+                        <option value="tSLV">tSLV (Gümüş)</option>
+                        <option value="tCPR">tCPR (Bakır)</option>
+                        <option value="tPLT">tPLT (Platin)</option>
+                        <option value="tNGAS">tNGAS (Doğal Gaz)</option>
+                        <option value="tBRENT">tBRENT (Brent Petrol)</option>
+                    </optgroup>
+                </select>
+            </div>
+
+            <button class="swap-btn" id="swapBtn">Cüzdanı Bağlayın</button>
+        </div>
+    </div>
+
+    <!-- 2️⃣ STAKE SAYFASI (2'Lİ HAVUZ & TEMETTÜ) -->
+    <div id="stakePage" class="page-section">
+        <div class="stake-container">
+            
+            <!-- SOL HAVUZ: META COIN & TEMETTÜ GETİRİSİ -->
+            <div class="stake-card">
+                <h2>Meta Coin Stake & Temettü</h2>
+                <div class="tier-badge" id="tierBadge">Mevcut Seviye: BRONZE 🥉</div>
+                
+                <div class="stake-input-box">
+                    <input type="number" placeholder="Stake edilecek Meta Miktarı" id="metaStakeAmount" oninput="tierHesapla()">
+                </div>
+                
+                <button class="action-btn">Meta Stake Et</button>
+
+                <div class="info-row">
+                    <span>Temettü Destekli APY:</span>
+                    <strong style="color: #00FFC2;">%42.8 (Dinamik)</strong>
+                </div>
+                <div class="info-row">
+                    <span>Komisyon İndirimi:</span>
+                    <strong id="discountText" style="color: #00d2ff;">%0 (Bronze)</strong>
+                </div>
+            </div>
+
+            <!-- SAĞ HAVUZ: TRYB STAKE (%30 FAİZ ORANI) -->
+            <div class="stake-card">
+                <h2>TRYB Likidite Havuzu Stake</h2>
+                <div class="tier-badge" style="background: rgba(255, 204, 0, 0.15); color: #ffcc00; border-color: rgba(255, 204, 0, 0.3);">Yüksek Faiz Havuzu</div>
+                
+                <div class="stake-input-box">
+                    <input type="number" placeholder="Yatırılacak TRYB Miktarı" id="trybStakeAmount">
+                </div>
+                
+                <button class="action-btn" style="background: linear-gradient(90deg, #ffcc00 0%, #ff9900 100%);">TRYB Stake Et</button>
+
+                <div class="info-row">
+                    <span>Sabit Havuz APY:</span>
+                    <strong style="color: #ffcc00;">%30.0</strong>
+                </div>
+                <div class="info-row">
+                    <span>Tahmini Günlük Getiri:</span>
+                    <strong style="color: #fff;">Yüksek Verim</strong>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- 3️⃣ BRIDGE SAYFASI (ETH/AVAX -> TRYB ÇEVİRİCİ) -->
+    <div id="bridgePage" class="page-section">
+        <div class="swap-container">
+            <div class="swap-header">
+                <span>Zincirler Arası Köprü (Bridge)</span>
+                <span>⚡</span>
+            </div>
+
+            <div class="asset-box">
+                <input type="number" placeholder="0.0" id="bridgeFromAmount">
+                <select class="asset-dropdown">
+                    <option value="AVAX">AVAX (Fuji)</option>
+                    <option value="ETH">ETH (Arbitrum)</option>
+                </select>
+            </div>
+
+            <div class="arrow-down">↓</div>
+
+            <div class="asset-box">
+                <input type="number" placeholder="0.0" id="bridgeToAmount" readonly>
+                <button class="asset-dropdown">TRYB</button>
+            </div>
+
+            <button class="swap-btn active" style="background: linear-gradient(90deg, #00d2ff 0%, #3a7bd5 100%); color: white;" onclick="alert('Köprü transferi başlatıldı!')">TRYB'ye Çevir & Köprüle</button>
+        </div>
+    </div>
+
+    <!-- SCRIPT -->
+    <script>
+        function sayfaDegis(sayfaAdi) {
+            document.querySelectorAll('.page-section').forEach(el => el.classList.remove('active'));
+            document.querySelectorAll('.nav-link').forEach(el => el.classList.remove('active'));
+
+            if(sayfaAdi === 'home') {
+                document.getElementById('homePage').classList.add('active');
+                event.target.classList.add('active');
+            } else if(sayfaAdi === 'swap') {
+                document.getElementById('swapPage').classList.add('active');
+                event.target.classList.add('active');
+            } else if(sayfaAdi === 'stake') {
+                document.getElementById('stakePage').classList.add('active');
+                event.target.classList.add('active');
+            } else if(sayfaAdi === 'bridge') {
+                document.getElementById('bridgePage').classList.add('active');
+                event.target.classList.add('active');
+            }
+        }
+
+        function tierHesapla() {
+            let miktar = parseFloat(document.getElementById('metaStakeAmount').value) || 0;
+            let badge = document.getElementById('tierBadge');
+            let discount = document.getElementById('discountText');
+
+            if(miktar >= 10000) {
+                badge.innerText = "Mevcut Seviye: DIAMOND 💎";
+                badge.style.color = "#00ffff"; badge.style.borderColor = "#00ffff";
+                discount.innerText = "%50 Komisyon İndirimi";
+            } else if(miktar >= 5000) {
+                badge.innerText = "Mevcut Seviye: GOLD 🥇";
+                badge.style.color = "#ffd700"; badge.style.borderColor = "#ffd700";
+                discount.innerText = "%30 Komisyon İndirimi";
+            } else if(miktar >= 1000) {
+                badge.innerText = "Mevcut Seviye: SILVER 🥈";
+                badge.style.color = "#c0c0c0"; badge.style.borderColor = "#c0c0c0";
+                discount.innerText = "%15 Komisyon İndirimi";
+            } else {
+                badge.innerText = "Mevcut Seviye: BRONZE 🥉";
+                badge.style.color = "#00d2ff"; badge.style.borderColor = "rgba(0, 210, 255, 0.3)";
+                discount.innerText = "%0 (Bronze)";
+            }
+        }
+
+        async function cuzdanBagla() {
+            if (window.ethereum) {
+                try {
+                    const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
+                    const account = accounts[0];
+                    const kisaAdres = account.substring(0, 6) + "..." + account.substring(account.length - 4);
+                    
+                    document.getElementById("connectBtn").innerText = kisaAdres;
+                    
+                    const swapBtn = document.getElementById("swapBtn");
+                    swapBtn.innerText = "Takası Onayla";
+                    swapBtn.classList.add("active");
+                } catch (error) {
+                    console.error("İptal edildi");
+                }
+            } else {
+                alert("MetaMask yüklü değil!");
+            }
+        }
+    </script>
+
+</body>
+</html>
