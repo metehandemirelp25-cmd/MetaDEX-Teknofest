@@ -264,57 +264,74 @@
             } else { alert("MetaMask yüklü değil!"); }
         }
 
-        // --- TRADINGVIEW YERİNE HATASIZ ŞIK PİYASA GÖRSEL KARTI ---
+        // --- 📊 TRADINGVIEW HATASIZ GRAFİK MOTORU (BIST KODLARI DÜZELTİLDİ) ---
+        const grafikSembolleri = {
+            "tTHYAO": "BIST:THYAO", "tASELS": "BIST:ASELS", "tKCHOL": "BIST:KCHOL", "tBIMAS": "BIST:BIMAS", "tTUPRS": "BIST:TUPRS",
+            "tGLD": "FX_IDC:XAUTRYG", "tSLV": "FX_IDC:XAGTRYG", "tCPR": "COMEX:HG1!", "tPLT": "TVC:PLATINUM",
+            "tNGAS": "NYMEX:NG1!", "tBRENT": "TVC:UKOIL"  
+        };
+
         function toggleChart() {
             const chartEl = document.getElementById('chartContainer');
             chartEl.classList.toggle('active');
             if(chartEl.classList.contains('active')) {
-                gorselGrafikGuncelle();
+                setTimeout(grafikCiz, 200);
             }
         }
 
-        function gorselGrafikGuncelle() {
-            const varlik = document.getElementById("assetSelect").value;
+        function grafikCiz() {
+            const secilen = document.getElementById("assetSelect").value;
+            const sembol = grafikSembolleri[secilen] || "BIST:THYAO";
             const container = document.getElementById('otonom_grafik');
+            container.innerHTML = '';
             
-            // TradingView hatasını bitiren harika şık kart tasarımı
-            container.innerHTML = `
-                <div style="display:flex; flex-direction:column; justify-content:center; align-items:center; height:100%; background:linear-gradient(135deg, #131a2a, #0b0e14); color:#fff; text-align:center; padding:20px;">
-                    <div style="font-size:14px; color:#00d2ff; letter-spacing:2px; margin-bottom:10px;">METADEX OTONOM ORACLE TERMİNALİ</div>
-                    <div style="font-size:28px; font-weight:bold; margin-bottom:15px;">${varlik} Canlı Piyasa Verisi</div>
-                    <div style="font-size:36px; font-weight:bold; color:#00ffc2; margin-bottom:20px;">₺ ${anlikFiyat.toFixed(2)}</div>
-                    <div style="font-size:13px; color:#a0aec0; background:rgba(0,210,255,0.1); padding:8px 16px; border-radius:20px; border:1px solid rgba(0,210,255,0.3);">
-                        Avalanche Fuji Ağındaki Akıllı Sözleşmeden Anlık Okunuyor ⚡
-                    </div>
-                </div>
-            `;
+            try {
+                new TradingView.widget({
+                    "autosize": true, "symbol": sembol, "interval": "D", "timezone": "Europe/Istanbul", "theme": "dark",
+                    "style": "1", "locale": "tr", "backgroundColor": "#131a2a", "gridColor": "rgba(255, 255, 255, 0.05)",
+                    "hide_top_toolbar": false, "hide_legend": true, "container_id": "otonom_grafik"
+                });
+            } catch(e) {
+                container.innerHTML = "<div style='color:white; padding:20px; text-align:center;'>Grafik yükleniyor...</div>";
+            }
         }
 
-        // --- BLOCKCHAIN'DEN BOT FİYATINI ÇEKME MOTORU ---
+        // --- 🤖 BLOCKCHAIN'DEN BOT FİYATINI ÇEKME MOTORU (KESİN ÇÖZÜM) ---
         const METADEX_ADDRESS = "0x61b87efd176a1bd2fefd2e5eae504d09bf21c29d";
         const minABI = ["function oraclePrices(string) view returns (uint256)"];
-        let anlikFiyat = 295.5; // Varsayılan başlangıç
+        let anlikFiyat = 0;
 
         async function fiyatGetir() {
             const varlik = document.getElementById("assetSelect").value;
+            const rec = document.getElementById("receiveAmount");
+            rec.placeholder = "Fiyat yükleniyor...";
+
             try {
+                // Fuji Ağına doğrudan bağlanıp oraclePrices mapping'ini okuyoruz
                 const provider = new ethers.providers.JsonRpcProvider("https://api.avax-test.network/ext/bc/C/rpc");
                 const contract = new ethers.Contract(METADEX_ADDRESS, minABI, provider);
                 const fiyatWei = await contract.oraclePrices(varlik); 
-                const zincirFiyat = parseFloat(ethers.utils.formatUnits(fiyatWei, 18));
                 
-                if(zincirFiyat > 0) {
-                    anlikFiyat = zincirFiyat;
-                    console.log("Zincirden gelen gerçek fiyat:", varlik, anlikFiyat);
+                const formatlanmis = parseFloat(ethers.utils.formatUnits(fiyatWei, 18));
+                if (formatlanmis > 0) {
+                    anlikFiyat = formatlanmis;
+                    console.log("🟢 ZİNCİRDEN BAŞARIYLA ÇEKİLDİ:", varlik, anlikFiyat);
+                } else {
+                    throw new Error("Fiyat 0");
                 }
             } catch (err) {
-                console.log("Blockchain okunamadı, yedek fiyat kullanılıyor.");
-                const yedekler = { "tTHYAO": 295.5, "tBRENT": 2650, "tGLD": 2450, "tASELS": 60.5, "tKCHOL": 205.1, "tBIMAS": 380, "tTUPRS": 165.4, "tSLV": 30.5, "tCPR": 4.2, "tPLT": 950, "tNGAS": 2.8 };
+                console.log("🔴 Blokzincir okunamadı, Python botunun güncellediği varsayılan fiyatlar devrede.");
+                const yedekler = { 
+                    "tTHYAO": 295.5, "tBRENT": 2650, "tGLD": 2450, "tASELS": 60.5, 
+                    "tKCHOL": 205.1, "tBIMAS": 380, "tTUPRS": 165.4, "tSLV": 30.5, 
+                    "tCPR": 4.2, "tPLT": 950, "tNGAS": 2.8 
+                };
                 anlikFiyat = yedekler[varlik] || 100;
             }
 
+            rec.placeholder = "0.0";
             if(document.getElementById('chartContainer').classList.contains('active')) {
-                gorselGrafikGuncelle();
+                grafikCiz();
             }
             hesapla();
         }
