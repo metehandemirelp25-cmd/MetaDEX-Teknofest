@@ -224,6 +224,9 @@
     </div>
 
     <!-- JAVASCRIPT KODLARI (KIRILMAZ VE HIZLI MOTOR) -->
+    <!-- 📊 LIGHTWEIGHT CHARTS KÜTÜPHANESİ (TRADINGVIEW DERDİNE SON) -->
+    <script src="https://unpkg.com/lightweight-charts/dist/lightweight-charts.standalone.production.js"></script>
+
     <script>
         function sayfaDegis(sayfaAdi) {
             document.querySelectorAll('.page-section').forEach(el => el.classList.remove('active'));
@@ -264,50 +267,50 @@
             } else { alert("MetaMask yüklü değil!"); }
         }
 
-        // --- 📊 TRADINGVIEW HATASIZ GRAFİK MOTORU (BIST KODLARI DÜZELTİLDİ) ---
-        const grafikSembolleri = {
-            "tTHYAO": "BIST:THYAO", "tASELS": "BIST:ASELS", "tKCHOL": "BIST:KCHOL", "tBIMAS": "BIST:BIMAS", "tTUPRS": "BIST:TUPRS",
-            "tGLD": "FX_IDC:XAUTRYG", "tSLV": "FX_IDC:XAGTRYG", "tCPR": "COMEX:HG1!", "tPLT": "TVC:PLATINUM",
-            "tNGAS": "NYMEX:NG1!", "tBRENT": "TVC:UKOIL"  
-        };
-
+        // --- 📈 LIGHTWEIGHT CHARTS İLE PROFESYONEL GRAFİK MOTORU (HATASIZ) ---
+        let chartInstance = null;
         function toggleChart() {
             const chartEl = document.getElementById('chartContainer');
             chartEl.classList.toggle('active');
             if(chartEl.classList.contains('active')) {
-                setTimeout(grafikCiz, 200);
+                setTimeout(grafikCiz, 100);
             }
         }
 
         function grafikCiz() {
-            const secilen = document.getElementById("assetSelect").value;
-            const sembol = grafikSembolleri[secilen] || "BIST:THYAO";
             const container = document.getElementById('otonom_grafik');
-            container.innerHTML = '';
+            container.innerHTML = ''; // Önceki grafiği temizle
             
-            try {
-                new TradingView.widget({
-                    "autosize": true, "symbol": sembol, "interval": "D", "timezone": "Europe/Istanbul", "theme": "dark",
-                    "style": "1", "locale": "tr", "backgroundColor": "#131a2a", "gridColor": "rgba(255, 255, 255, 0.05)",
-                    "hide_top_toolbar": false, "hide_legend": true, "container_id": "otonom_grafik"
-                });
-            } catch(e) {
-                container.innerHTML = "<div style='color:white; padding:20px; text-align:center;'>Grafik yükleniyor...</div>";
-            }
+            // Profesyonel TradingView Lightweight Chart Örneği
+            chartInstance = LightweightCharts.createChart(container, {
+                layout: { background: { color: '#131a2a' }, textColor: '#ffffff' },
+                grid: { vertLines: { color: 'rgba(255, 255, 255, 0.05)' }, horzLines: { color: 'rgba(255, 255, 255, 0.05)' } },
+                width: container.clientWidth,
+                height: container.clientHeight,
+            });
+
+            const lineSeries = chartInstance.addLineSeries({ color: '#00d2ff', lineWidth: 2 });
+            
+            // Temsili otonom mum verileri (Python botu ile senkronize edilebilir)
+            lineSeries.setData([
+                { time: '2026-09-10', value: anlikFiyat * 0.98 },
+                { time: '2026-09-11', value: anlikFiyat * 0.99 },
+                { time: '2026-09-12', value: anlikFiyat * 0.97 },
+                { time: '2026-09-13', value: anlikFiyat * 1.01 },
+                { time: '2026-09-14', value: anlikFiyat * 0.995 },
+                { time: '2026-09-15', value: anlikFiyat },
+            ]);
+            chartInstance.timeScale().fitContent();
         }
 
-        // --- 🤖 BLOCKCHAIN'DEN BOT FİYATINI ÇEKME MOTORU (KESİN ÇÖZÜM) ---
+        // --- 🤖 PYTHON BOTUNUN FİYATLARINI ÇEKEN MOTOR ---
         const METADEX_ADDRESS = "0x61b87efd176a1bd2fefd2e5eae504d09bf21c29d";
         const minABI = ["function oraclePrices(string) view returns (uint256)"];
-        let anlikFiyat = 0;
+        let anlikFiyat = 295.5;
 
         async function fiyatGetir() {
             const varlik = document.getElementById("assetSelect").value;
-            const rec = document.getElementById("receiveAmount");
-            rec.placeholder = "Fiyat yükleniyor...";
-
             try {
-                // Fuji Ağına doğrudan bağlanıp oraclePrices mapping'ini okuyoruz
                 const provider = new ethers.providers.JsonRpcProvider("https://api.avax-test.network/ext/bc/C/rpc");
                 const contract = new ethers.Contract(METADEX_ADDRESS, minABI, provider);
                 const fiyatWei = await contract.oraclePrices(varlik); 
@@ -315,12 +318,12 @@
                 const formatlanmis = parseFloat(ethers.utils.formatUnits(fiyatWei, 18));
                 if (formatlanmis > 0) {
                     anlikFiyat = formatlanmis;
-                    console.log("🟢 ZİNCİRDEN BAŞARIYLA ÇEKİLDİ:", varlik, anlikFiyat);
+                    console.log("🟢 ZİNCİRDEN GELEN FİYAT:", varlik, anlikFiyat);
                 } else {
-                    throw new Error("Fiyat 0");
+                    throw new Error("Sıfır fiyat");
                 }
             } catch (err) {
-                console.log("🔴 Blokzincir okunamadı, Python botunun güncellediği varsayılan fiyatlar devrede.");
+                console.log("🔴 Zincirden okunamadı, Python botunun yedek fiyatı aktif.");
                 const yedekler = { 
                     "tTHYAO": 295.5, "tBRENT": 2650, "tGLD": 2450, "tASELS": 60.5, 
                     "tKCHOL": 205.1, "tBIMAS": 380, "tTUPRS": 165.4, "tSLV": 30.5, 
@@ -329,7 +332,6 @@
                 anlikFiyat = yedekler[varlik] || 100;
             }
 
-            rec.placeholder = "0.0";
             if(document.getElementById('chartContainer').classList.contains('active')) {
                 grafikCiz();
             }
