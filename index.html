@@ -225,6 +225,7 @@
 
     <!-- JAVASCRIPT KODLARI (TRADINGVIEW VE WEB3 BOT EKLENTİLİ) -->
     <!-- BÜTÜN JAVASCRIPT KODLARI (WEB3 & TRADINGVIEW DÜZELTİLMİŞ) -->
+    <!-- JAVASCRIPT KODLARI (KIRILMAZ MOTOR) -->
     <script>
         function sayfaDegis(sayfaAdi) {
             document.querySelectorAll('.page-section').forEach(el => el.classList.remove('active'));
@@ -233,22 +234,17 @@
             event.target.classList.add('active');
         }
 
-        /* AYARLAR (SLIPPAGE) */
         function openSlippage() { document.getElementById('slippageModal').style.display = 'flex'; }
         function closeSlippage(e) { if(e) e.stopPropagation(); document.getElementById('slippageModal').style.display = 'none'; }
-        function setSlippage(btn) { document.querySelectorAll('.slip-btn').forEach(b => b.classList.remove('active')); btn.classList.add('active'); document.querySelector('.slip-custom').value = ''; }
+        function setSlippage(btn) { document.querySelectorAll('.slip-btn').forEach(b => b.classList.remove('active')); btn.classList.add('active'); }
         function setCustomSlippage() { document.querySelectorAll('.slip-btn').forEach(b => b.classList.remove('active')); }
 
-        /* GRAFİK AÇ/KAPAT */
         function toggleChart() {
             const chartEl = document.getElementById('chartContainer');
             chartEl.classList.toggle('active');
-            if(chartEl.classList.contains('active')) {
-                setTimeout(sistemiTetikle, 50);
-            }
+            if(chartEl.classList.contains('active')) setTimeout(sistemiTetikle, 50);
         }
 
-        /* 🦊 WEB3 METAMASK BAĞLANTISI */
         let provider, signer, userAddress;
         async function cuzdanBagla() {
             if (window.ethereum) {
@@ -259,20 +255,20 @@
                     document.getElementById("connectBtn").innerText = userAddress.substring(0, 6) + "..." + userAddress.substring(userAddress.length - 4);
                     const swapBtn = document.getElementById("swapBtn");
                     swapBtn.innerText = "Takası Onayla"; swapBtn.classList.add("active");
-                } catch (error) { console.log("Cüzdan bağlanmadı."); }
+                } catch (error) { console.log("Cüzdan iptal edildi."); }
             } else { alert("MetaMask yüklü değil!"); }
         }
 
-        /* 📊 TRADINGVIEW (BIST HATASI ÇÖZÜLDÜ - HİSSELERE BIST100 ENDEKSİ VERİLDİ) */
+        // 📊 TRADINGVIEW (ÜCRETSİZ SÜRÜMLE UYUMLU KESİN ÇALIŞAN SEMBOLLER)
         const grafikSembolleri = {
             "tTHYAO": "BIST:XU100", "tASELS": "BIST:XU100", "tKCHOL": "BIST:XU100", "tBIMAS": "BIST:XU100", "tTUPRS": "BIST:XU100",
-            "tGLD": "FX_IDC:XAUTRYG", "tSLV": "FX_IDC:XAGTRYG", "tCPR": "COMEX:HG1!", "tPLT": "TVC:PLATINUM",
+            "tGLD": "OANDA:XAUUSD", "tSLV": "OANDA:XAGUSD", "tCPR": "COMEX:HG1!", "tPLT": "TVC:PLATINUM",
             "tNGAS": "NYMEX:NG1!", "tBRENT": "TVC:UKOIL"  
         };
 
         function grafigiGuncelle(sembolKodu) {
             const container = document.getElementById('otonom_grafik');
-            container.innerHTML = ''; // Eski grafiği temizler, çökmeyi önler!
+            container.innerHTML = ''; // Çökmeyi engellemek için eskiyi sil
             
             new TradingView.widget({
                 "autosize": true, "symbol": sembolKodu, "interval": "D", "timezone": "Europe/Istanbul", "theme": "dark",
@@ -281,7 +277,6 @@
             });
         }
 
-        /* ⇅ YÖN DEĞİŞTİRME */
         let yonAlis = true;
         function yonDegistir() {
             yonAlis = !yonAlis;
@@ -299,11 +294,9 @@
             sistemiTetikle();
         }
 
-        /* 🤖 OTONOM FİYAT HESAPLAMA (BOT ENTEGRASYONU) */
+        // 🤖 OTONOM FİYAT (KIRILMAZ MANTIK)
         const METADEX_ADDRESS = "0x61b87efd176a1bd2fefd2e5eae504d09bf21c29d";
         const minABI = ["function assetPrices(string) view returns (uint256)"];
-        
-        // 🔥 SİHİRLİ DOKUNUŞ: CÜZDAN BAĞLANMASA BİLE FUJİ AĞINA DİREKT BAĞLANAN MOTOR!
         const fujiProvider = new ethers.providers.JsonRpcProvider("https://api.avax-test.network/ext/bc/C/rpc");
         const oracleContract = new ethers.Contract(METADEX_ADDRESS, minABI, fujiProvider);
 
@@ -319,28 +312,29 @@
                 if(grafikSembolleri[secilenVarlik]) grafigiGuncelle(grafikSembolleri[secilenVarlik]);
             }
 
+            // 1. ADIM: SİTE ÇÖKMESİN DİYE ÖNCE YEDEK (SABİT) FİYATLARI YÜKLE
             let gercekFiyat = 0;
-            const miktar = parseFloat(yonAlis ? payInput.value : recInput.value) || 0;
+            if(secilenVarlik === "tTHYAO") gercekFiyat = 295.50; if(secilenVarlik === "tBRENT") gercekFiyat = 2650.00; 
+            if(secilenVarlik === "tGLD") gercekFiyat = 2450.00; if(secilenVarlik === "tASELS") gercekFiyat = 60.50;
+            if(secilenVarlik === "tKCHOL") gercekFiyat = 205.10; if(secilenVarlik === "tBIMAS") gercekFiyat = 380.00;
+            if(secilenVarlik === "tTUPRS") gercekFiyat = 165.40; if(secilenVarlik === "tSLV") gercekFiyat = 30.50;
+            if(secilenVarlik === "tCPR") gercekFiyat = 4.20; if(secilenVarlik === "tPLT") gercekFiyat = 950.00;
+            if(secilenVarlik === "tNGAS") gercekFiyat = 2.80;
 
+            // 2. ADIM: EĞER BOT ÇALIŞIYORSA VE AĞ HIZLIYSA YEDEK FİYATI EZİP GERÇEĞİNİ YAZ!
             try {
-                // DOĞRUDAN SENİN BOTUN BESLEDİĞİ KONTRATTAN FİYATI ÇEKİYORUZ!
                 const fiyatWei = await oracleContract.assetPrices(secilenVarlik); 
-                gercekFiyat = parseFloat(ethers.utils.formatUnits(fiyatWei, 18));
-                console.log(secilenVarlik + " Blockchain Fiyatı: " + gercekFiyat);
+                const botFiyati = parseFloat(ethers.utils.formatUnits(fiyatWei, 18));
+                if(botFiyati > 0) {
+                    gercekFiyat = botFiyati; // Bot çalışıyorsa sahte fiyatı ezer!
+                    console.log("🟢 BOT BAŞARILI: " + secilenVarlik + " = " + gercekFiyat + " TL");
+                }
             } catch (error) {
-                console.log("Kontrattan okunamadı, yedek fiyat kullanılıyor...");
+                console.log("🔴 Bot bağlantısı bekleniyor, yedek fiyat ekranda tutuluyor...");
             }
 
-            // İlk açılışta kontratta henüz fiyat yoksa (0 ise) site hata vermesin diye yedekler
-            if(gercekFiyat === 0) {
-                if(secilenVarlik === "tTHYAO") gercekFiyat = 295.50; if(secilenVarlik === "tBRENT") gercekFiyat = 2650.00; 
-                if(secilenVarlik === "tGLD") gercekFiyat = 2450.00; if(secilenVarlik === "tASELS") gercekFiyat = 60.50;
-                if(secilenVarlik === "tKCHOL") gercekFiyat = 205.10; if(secilenVarlik === "tBIMAS") gercekFiyat = 380.00;
-                if(secilenVarlik === "tTUPRS") gercekFiyat = 165.40; if(secilenVarlik === "tSLV") gercekFiyat = 30.50;
-                if(secilenVarlik === "tCPR") gercekFiyat = 4.20; if(secilenVarlik === "tPLT") gercekFiyat = 950.00;
-                if(secilenVarlik === "tNGAS") gercekFiyat = 2.80;
-            }
-            
+            // 3. ADIM: HESAPLAMAYI EKRANA BAS
+            const miktar = parseFloat(yonAlis ? payInput.value : recInput.value) || 0;
             if(yonAlis) {
                 if(gercekFiyat > 0 && miktar > 0) recInput.value = (miktar / gercekFiyat).toFixed(4); else recInput.value = "";
             } else {
