@@ -58,8 +58,8 @@
         .arrow-down { display: flex; justify-content: center; align-items: center; height: 36px; width: 36px; margin: -14px auto; background: #1a202c; border: 4px solid #131a2a; border-radius: 10px; color: #00d2ff; font-size: 18px; position: relative; z-index: 2; cursor: pointer; transition: 0.2s; }
         .arrow-down:hover { background: #00d2ff; color: #1a202c; }
 
-        .swap-btn { width: 100%; background: linear-gradient(90deg, #00d2ff 0%, #3a7bd5 100%); color: white; border: none; padding: 18px; border-radius: 16px; font-size: 18px; font-weight: bold; cursor: pointer; margin-top: 16px; transition: 0.3s; }
-        .swap-btn:hover { opacity: 0.9; }
+        .swap-btn { width: 100%; background: rgba(45, 55, 72, 0.6); color: #a0aec0; border: none; padding: 18px; border-radius: 16px; font-size: 18px; font-weight: bold; cursor: pointer; margin-top: 16px; transition: 0.3s; }
+        .swap-btn.active { background: linear-gradient(90deg, #00d2ff 0%, #3a7bd5 100%); color: white; box-shadow: 0 4px 15px rgba(0, 210, 255, 0.3); }
 
         .stake-container { max-width: 1000px; margin: 60px auto; padding: 0 20px; display: grid; grid-template-columns: 1fr 1fr; gap: 30px; }
         .stake-card { background: rgba(19, 26, 42, 0.65); backdrop-filter: blur(20px); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 24px; padding: 30px; box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5); }
@@ -94,7 +94,7 @@
         <div class="hero-container">
             <h1>Geleceğin Otonom RWA Ekosistemi</h1>
             <p>BIST100 hisseleri ve küresel emtiaları blokzincire taşıyan, yapay zeka destekli otonom oracle altyapısı ve TRYB tabanlı merkeziyetsiz borsa deneyimi.</p>
-            <button class="swap-btn" style="max-width: 250px; margin: 0 auto; padding: 16px;" onclick="sayfaDegis(event, 'swap')">Hemen İşleme Başla</button>
+            <button class="connect-btn" style="max-width: 250px; margin: 0 auto; padding: 16px;" onclick="sayfaDegis(event, 'swap')">Hemen İşleme Başla</button>
 
             <div class="features-grid">
                 <div class="feature-card">
@@ -151,7 +151,7 @@
                         </select>
                     </div>
                 </div>
-                <button class="swap-btn" id="swapBtn">Takası Onayla</button>
+                <button class="swap-btn" id="swapBtn" onclick="islemYap()">Cüzdanı Bağlayın</button>
             </div>
         </div>
     </div>
@@ -163,14 +163,14 @@
                 <h2>Meta Coin Stake & Temettü</h2>
                 <div class="tier-badge">Mevcut Seviye: BRONZE 🥉</div>
                 <div class="stake-input-box"><input type="number" placeholder="Stake Miktarı"></div>
-                <button class="swap-btn" style="margin-top: 0;">Meta Stake Et</button>
+                <button class="connect-btn" style="width: 100%; border-radius: 14px; padding: 14px; font-size: 16px;">Meta Stake Et</button>
                 <div class="info-row"><span>Komisyon İndirimi:</span><strong>%0</strong></div>
             </div>
             <div class="stake-card">
                 <h2>TRYB Likidite Havuzu</h2>
                 <div class="tier-badge" style="background: rgba(255, 204, 0, 0.15); color: #ffcc00;">Yüksek Faiz</div>
                 <div class="stake-input-box"><input type="number" placeholder="TRYB Miktarı"></div>
-                <button class="swap-btn" style="margin-top: 0; background: linear-gradient(90deg, #ffcc00 0%, #ff9900 100%);">TRYB Stake Et</button>
+                <button class="connect-btn" style="width: 100%; border-radius: 14px; padding: 14px; font-size: 16px; background: linear-gradient(90deg, #ffcc00 0%, #ff9900 100%);">TRYB Stake Et</button>
                 <div class="info-row"><span>Sabit APY:</span><strong style="color: #ffcc00;">%30.0</strong></div>
             </div>
         </div>
@@ -197,12 +197,13 @@
                     <button class="asset-dropdown" style="cursor: default;">TRYB</button>
                 </div>
             </div>
-            <button class="swap-btn" onclick="alert('Köprüleme işlemi başlatıldı!')">TRYB'ye Çevir & Köprüle</button>
+            <button class="connect-btn" style="width: 100%; border-radius: 16px; padding: 18px; font-size: 18px; margin-top: 16px;" onclick="alert('Köprüleme işlemi başlatıldı!')">TRYB'ye Çevir & Köprüle</button>
         </div>
     </div>
 
     <script>
         const API_BASE = "http://localhost:5000";
+        let cüzdanBagliMi = false;
 
         function sayfaDegis(e, sayfaAdi) {
             document.querySelectorAll('.page-section').forEach(el => el.classList.remove('active'));
@@ -248,12 +249,36 @@
         }
 
         async function cuzdanBagla() {
+            if (cüzdanBagliMi) {
+                // Disconnect işlemi
+                cüzdanBagliMi = false;
+                document.getElementById("connectBtn").innerText = "Cüzdanı Bağla";
+                const swapBtn = document.getElementById("swapBtn");
+                swapBtn.innerText = "Cüzdanı Bağlayın";
+                swapBtn.classList.remove("active");
+                return;
+            }
+
             if (window.ethereum) {
                 try {
                     const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
-                    document.getElementById("connectBtn").innerText = accounts[0].substring(0, 6) + "..." + accounts[0].substring(accounts[0].length - 4);
+                    cüzdanBagliMi = true;
+                    const shortAddr = accounts[0].substring(0, 6) + "..." + accounts[0].substring(accounts[0].length - 4);
+                    document.getElementById("connectBtn").innerText = shortAddr;
+                    
+                    const swapBtn = document.getElementById("swapBtn");
+                    swapBtn.innerText = "Takası Onayla";
+                    swapBtn.classList.add("active");
                 } catch (error) {}
             } else { alert("MetaMask yüklü değil!"); }
+        }
+
+        function islemYap() {
+            if (!cüzdanBagliMi) {
+                cuzdanBagla();
+            } else {
+                alert("Takas başarıyla onaylandı ve otonom işleme alındı!");
+            }
         }
 
         let chartInstance = null;
@@ -272,19 +297,20 @@
             try {
                 const res = await fetch(`${API_BASE}/api/history/${varlik}`);
                 const raw = await res.json();
-                console.log("📊 API'den gelen ham grafik verisi:", raw);
                 veri = raw.map(r => ({ time: Number(r.time), value: Number(r.value) }));
-            } catch (err) {
-                console.log("🔴 Grafik veri çekme hatası:", err);
-            }
+            } catch (err) {}
 
-            if (veri.length < 2) {
-                container.innerHTML = `<div class="chart-empty-msg">Bot verileri topluyor, grafik birazdan dolacak (${veri.length}/2)...</div>`;
+            if (veri.length === 0) {
+                container.innerHTML = `<div class="chart-empty-msg">Bot verileri topluyor, grafik birazdan dolacak...</div>`;
                 return;
             }
 
             const width = container.clientWidth || 600;
             const height = container.clientHeight || 450;
+
+            if (chartInstance) {
+                chartInstance.remove();
+            }
 
             chartInstance = LightweightCharts.createChart(container, {
                 layout: { background: { color: '#131a2a' }, textColor: '#ffffff' },
