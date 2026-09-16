@@ -6,7 +6,8 @@
     <title>MetaDEX V2 | Otonom RWA & Temettü Borsası</title>
 
     <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2300d2ff' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><rect x='3' y='11' width='18' height='10' rx='2' ry='2'></rect><circle cx='12' cy='5' r='2'></circle><path d='M12 7v4'></path><line x1='8' y1='16' x2='8.01' y2='16'></line><line x1='16' y1='16' x2='16.01' y2='16'></line></svg>">
-    <script src="https://cdn.ethers.io/lib/ethers-5.7.2.umd.min.js" defer></script>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/ethers/5.7.2/ethers.umd.min.js"></script>
     <script src="https://unpkg.com/lightweight-charts@4.2.0/dist/lightweight-charts.standalone.production.js"></script>
 
     <style>
@@ -30,7 +31,7 @@
         .hero-container { max-width: 1000px; margin: 80px auto; text-align: center; padding: 0 20px; }
         .hero-container h1 { font-size: 56px; margin-bottom: 25px; background: linear-gradient(90deg, #00d2ff, #00ffc2); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
         .hero-container p { font-size: 20px; color: #a0aec0; line-height: 1.6; margin-bottom: 50px; padding: 0 50px; }
-        
+
         .features-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 30px; text-align: left; margin-top: 60px; }
         .feature-card { background: rgba(19, 26, 42, 0.65); backdrop-filter: blur(20px); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 20px; padding: 30px; box-shadow: 0 10px 30px rgba(0,0,0,0.2); transition: 0.3s; }
         .feature-card:hover { transform: translateY(-5px); border-color: rgba(0, 210, 255, 0.3); }
@@ -38,22 +39,40 @@
         .feature-card p { font-size: 15px; margin-bottom: 0; color: #cbd5e0; line-height: 1.5; }
 
         .swap-page-wrapper { display: flex; justify-content: center; align-items: flex-start; gap: 30px; max-width: 1200px; margin: 60px auto; padding: 0 20px; }
-        
+
         .chart-container { display: none; flex: 1; background: rgba(19, 26, 42, 0.65); backdrop-filter: blur(20px); border-radius: 24px; border: 1px solid rgba(255, 255, 255, 0.08); overflow: hidden; height: 480px; box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5); }
         .chart-container.active { display: flex; flex-direction: column; }
         #otonom_grafik { width: 100%; height: 100%; flex: 1; }
-        .chart-empty-msg { color: #a0aec0; font-size: 14px; text-align: center; padding-top: 200px; }
 
-        .swap-container { width: 100%; max-width: 440px; background: rgba(19, 26, 42, 0.65); backdrop-filter: blur(20px); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 24px; padding: 24px; box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5); margin: 60px auto; }
+        .swap-container { width: 100%; max-width: 440px; background: rgba(19, 26, 42, 0.65); backdrop-filter: blur(20px); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 24px; padding: 24px; box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5); margin: 60px auto; position: relative; z-index: 5; }
         .swap-header { display: flex; justify-content: space-between; align-items: center; font-size: 18px; font-weight: 600; color: #cbd5e0; margin-bottom: 25px; }
 
-        .icon-btn { cursor: pointer; font-size: 20px; background: rgba(255,255,255,0.05); padding: 8px; border-radius: 10px; }
+        .icon-btn { cursor: pointer; font-size: 20px; background: rgba(255,255,255,0.05); padding: 8px; border-radius: 10px; transition: 0.2s;}
+        .icon-btn:hover { background: rgba(255,255,255,0.1); }
+
         .asset-box { background-color: rgba(11, 14, 20, 0.85); border: 1px solid rgba(255, 255, 255, 0.06); border-radius: 18px; padding: 18px; display: flex; justify-content: space-between; align-items: center; }
-        
         .asset-box input { background: transparent; border: none; color: white; font-size: 26px; outline: none; width: 55%; -moz-appearance: textfield; }
         .asset-box input::-webkit-outer-spin-button, .asset-box input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
-
         .asset-dropdown { background: rgba(45, 55, 72, 0.8); color: white; border: 1px solid rgba(255, 255, 255, 0.1); padding: 10px 16px; border-radius: 12px; font-size: 16px; font-weight: bold; outline: none; cursor: pointer; }
+
+        .balance-text { font-size: 13px; color: #a0aec0; cursor: pointer; transition: 0.2s; }
+        .balance-text:hover { color: #00d2ff; }
+
+        .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.6); backdrop-filter: blur(8px); z-index: 1000; justify-content: center; align-items: center; }
+        .modal-overlay.active { display: flex; }
+        .settings-modal { background: #131a2a; border: 1px solid rgba(255,255,255,0.1); border-radius: 20px; padding: 24px; width: 360px; box-shadow: 0 20px 50px rgba(0,0,0,0.8); }
+        .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; font-size: 18px; font-weight: bold; }
+        .close-btn { cursor: pointer; color: #a0aec0; transition: 0.2s; font-size: 22px; }
+        .close-btn:hover { color: #fff; }
+        .setting-group { margin-bottom: 20px; }
+        .setting-title { font-size: 14px; color: #a0aec0; margin-bottom: 10px; display: block; }
+        .btn-row { display: flex; gap: 8px; margin-bottom: 10px; }
+        .preset-btn { flex: 1; background: rgba(45, 55, 72, 0.6); border: 1px solid rgba(255,255,255,0.1); color: #cbd5e0; padding: 8px 0; border-radius: 10px; cursor: pointer; transition: 0.2s; font-weight: bold; font-family: inherit; }
+        .preset-btn:hover { background: rgba(255,255,255,0.1); }
+        .preset-btn.active { background: #00d2ff; color: #131a2a; border-color: #00d2ff; }
+        .custom-input { width: 100%; background: rgba(11, 14, 20, 0.8); border: 1px solid rgba(255,255,255,0.1); color: white; padding: 10px; border-radius: 10px; outline: none; text-align: center; }
+
+        .wallet-choice-btn { width: 100%; text-align: left; padding: 16px; margin-bottom: 10px; border-radius: 14px; font-size: 15px; }
 
         .arrow-down { display: flex; justify-content: center; align-items: center; height: 36px; width: 36px; margin: -14px auto; background: #1a202c; border: 4px solid #131a2a; border-radius: 10px; color: #00d2ff; font-size: 18px; position: relative; z-index: 2; cursor: pointer; transition: 0.2s; }
         .arrow-down:hover { background: #00d2ff; color: #1a202c; }
@@ -67,7 +86,6 @@
         .tier-badge { display: inline-block; background: rgba(0, 210, 255, 0.15); color: #00d2ff; padding: 6px 14px; border-radius: 20px; font-size: 14px; font-weight: bold; margin-bottom: 20px; }
         .stake-input-box { background: rgba(11, 14, 20, 0.85); border: 1px solid rgba(255, 255, 255, 0.06); border-radius: 16px; padding: 16px; margin-bottom: 20px; }
         .stake-input-box input { width: 100%; background: transparent; border: none; color: white; font-size: 24px; outline: none; -moz-appearance: textfield; }
-        .stake-input-box input::-webkit-outer-spin-button, .stake-input-box input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
         .info-row { display: flex; justify-content: space-between; margin-top: 15px; font-size: 14px; color: #a0aec0; }
     </style>
 </head>
@@ -87,6 +105,45 @@
             <button class="nav-link" onclick="sayfaDegis(event, 'bridge')">Bridge</button>
         </div>
         <button class="connect-btn" id="connectBtn" onclick="cuzdanBagla()">Cüzdanı Bağla</button>
+    </div>
+
+    <!-- AYARLAR MODALI -->
+    <div class="modal-overlay" id="settingsModal">
+        <div class="settings-modal">
+            <div class="modal-header">
+                <span>Takas Ayarları</span>
+                <span class="close-btn" onclick="toggleSettings()">✖</span>
+            </div>
+            <div class="setting-group">
+                <span class="setting-title">Slippage Toleransı</span>
+                <div class="btn-row">
+                    <button class="preset-btn active" onclick="setSlippage(0.5, this)">%0.5</button>
+                    <button class="preset-btn" onclick="setSlippage(1, this)">%1</button>
+                    <button class="preset-btn" onclick="setSlippage(5, this)">%5</button>
+                </div>
+                <input type="number" id="customSlippage" class="custom-input" placeholder="Özel değer girin (%)" oninput="clearSlippageBtns()">
+            </div>
+            <div class="setting-group">
+                <span class="setting-title">İşlem Hızı (Gwei)</span>
+                <div class="btn-row">
+                    <button class="preset-btn active" onclick="setGwei('auto', this)">Otomatik</button>
+                    <button class="preset-btn" onclick="setGwei('normal', this)">Normal</button>
+                    <button class="preset-btn" onclick="setGwei('fast', this)">Yüksek</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- CÜZDAN SEÇİM MODALI (YENİ) -->
+    <div class="modal-overlay" id="walletChoiceModal">
+        <div class="settings-modal" style="width: 320px;">
+            <div class="modal-header">
+                <span>Cüzdan Bağla</span>
+                <span class="close-btn" onclick="toggleWalletChoice()">✖</span>
+            </div>
+            <button class="preset-btn wallet-choice-btn" onclick="connectInjected()">🦊 Tarayıcı Cüzdanı (MetaMask vb.)</button>
+            <button class="preset-btn wallet-choice-btn" onclick="connectViaWalletConnect()">📱 WalletConnect (QR ile bağlan — Safari/mobil dahil)</button>
+        </div>
     </div>
 
     <!-- ANA SAYFA -->
@@ -121,34 +178,50 @@
             </div>
             <div class="swap-container" style="margin: 0;">
                 <div class="swap-header">
-                    <span class="icon-btn" onclick="toggleChart()" title="Grafiği Aç/Kapat">📊</span>
+                    <div><span class="icon-btn" onclick="toggleChart()" title="Grafiği Aç/Kapat">📊</span></div>
                     <span>RWA Takas Merkezi</span>
+                    <div><span class="icon-btn" onclick="toggleSettings()" title="Takas Ayarları">⚙️</span></div>
                 </div>
+
                 <div id="swapFlexContainer" style="display: flex; flex-direction: column;">
-                    <div class="asset-box" id="box1" style="order: 1;">
-                        <input type="number" placeholder="0.0" id="payAmount">
-                        <button class="asset-dropdown" style="cursor: default;">TRYB</button>
+                    <div class="asset-box" id="box1" style="order: 1; flex-direction: column; align-items: stretch; gap: 10px;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
+                            <span style="color:#cbd5e0; font-size:13px;">Ödeyeceğiniz</span>
+                            <span class="balance-text" id="payBalance" onclick="maxBalance('pay')">Bakiye: --</span>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
+                            <input type="number" placeholder="0.0" id="payAmount" style="width: 65%;">
+                            <button class="asset-dropdown" style="cursor: default;">TRYB</button>
+                        </div>
                     </div>
+
                     <div class="arrow-down" onclick="yonDegistir()">⇅</div>
-                    <div class="asset-box" id="box2" style="order: 3;">
-                        <input type="number" placeholder="0.0" id="receiveAmount" readonly>
-                        <select class="asset-dropdown" id="assetSelect" onchange="fiyatGetir()">
-                            <optgroup label="BIST 100 Hisseleri">
-                                <option value="tTHYAO">tTHYAO (Thy)</option>
-                                <option value="tASELS">tASELS (Aselsan)</option>
-                                <option value="tKCHOL">tKCHOL (Koç Holding)</option>
-                                <option value="tBIMAS">tBIMAS (Bim)</option>
-                                <option value="tTUPRS">tTUPRS (Tüpraş)</option>
-                            </optgroup>
-                            <optgroup label="Küresel Emtialar">
-                                <option value="tGLD">tGLD (Altın)</option>
-                                <option value="tSLV">tSLV (Gümüş)</option>
-                                <option value="tCPR">tCPR (Bakır)</option>
-                                <option value="tPLT">tPLT (Platin)</option>
-                                <option value="tNGAS">tNGAS (Doğal Gaz)</option>
-                                <option value="tBRENT">tBRENT (Brent Petrol)</option>
-                            </optgroup>
-                        </select>
+
+                    <div class="asset-box" id="box2" style="order: 3; flex-direction: column; align-items: stretch; gap: 10px;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
+                            <span style="color:#cbd5e0; font-size:13px;">Alacağınız</span>
+                            <span class="balance-text" id="recBalance" onclick="maxBalance('rec')">Bakiye: --</span>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
+                            <input type="number" placeholder="0.0" id="receiveAmount" readonly style="width: 50%;">
+                            <select class="asset-dropdown" id="assetSelect" onchange="fiyatGetir(); updateBalances();">
+                                <optgroup label="BIST 100 Hisseleri">
+                                    <option value="tTHYAO">tTHYAO (Thy)</option>
+                                    <option value="tASELS">tASELS (Aselsan)</option>
+                                    <option value="tKCHOL">tKCHOL (Koç Holding)</option>
+                                    <option value="tBIMAS">tBIMAS (Bim)</option>
+                                    <option value="tTUPRS">tTUPRS (Tüpraş)</option>
+                                </optgroup>
+                                <optgroup label="Küresel Emtialar">
+                                    <option value="tGLD">tGLD (Altın)</option>
+                                    <option value="tSLV">tSLV (Gümüş)</option>
+                                    <option value="tCPR">tCPR (Bakır)</option>
+                                    <option value="tPLT">tPLT (Platin)</option>
+                                    <option value="tNGAS">tNGAS (Doğal Gaz)</option>
+                                    <option value="tBRENT">tBRENT (Brent Petrol)</option>
+                                </optgroup>
+                            </select>
+                        </div>
                     </div>
                 </div>
                 <button class="swap-btn" id="swapBtn" onclick="islemYap()">Cüzdanı Bağlayın</button>
@@ -201,27 +274,105 @@
         </div>
     </div>
 
+    <!-- 🔌 WALLETCONNECT: EthereumProvider'ı ESM olarak yükleyip window'a bağlıyoruz -->
+    <script type="module">
+        import { EthereumProvider } from "https://cdn.jsdelivr.net/npm/@walletconnect/ethereum-provider@2/+esm";
+
+        // 🔧 cloud.reown.com'dan ücretsiz aldığın Project ID'yi buraya yapıştır
+        const WC_PROJECT_ID = "BURAYA_PROJECT_ID_YAZ";
+
+        // ✅ FIX: singleton — Core'u sadece BİR KERE init ediyoruz.
+        // Önceki haliyle her tıklamada yeni bir EthereumProvider.init() çağrılıyordu,
+        // bu da "Core is already initialized... Init() was called N times" uyarısına ve
+        // "Connection request reset" hatasına yol açıyordu.
+        let wcProviderSingleton = null;
+        let wcInitPromise = null;
+
+        window.__initWalletConnect = async function () {
+            if (wcProviderSingleton) return wcProviderSingleton;
+            if (!wcInitPromise) {
+                wcInitPromise = EthereumProvider.init({
+                    projectId: WC_PROJECT_ID,
+                    optionalChains: [43113], // Avalanche Fuji testnet
+                    rpcMap: {
+                        43113: "https://api.avax-test.network/ext/bc/C/rpc"
+                    },
+                    showQrModal: true,
+                    metadata: {
+                        name: "MetaDEX V2",
+                        description: "Otonom RWA & Temettü Borsası",
+                        url: window.location.origin,
+                        icons: [window.location.origin + "/favicon.ico"]
+                    }
+                });
+            }
+            wcProviderSingleton = await wcInitPromise;
+            return wcProviderSingleton;
+        };
+    </script>
+
     <script>
         const API_BASE = "http://13.53.126.145:5000";
+
+        const DEX_CONTRACT_ADDRESS = "0x61B87EfD176a1Bd2fEfD2e5Eae504d09Bf21c29D";
+
+        const DEX_ABI = [
+            "function buyAsset(string assetName, uint256 trybAmount) external",
+            "function trybToken() view returns (address)"
+        ];
+
+        const ERC20_ABI = [
+            "function balanceOf(address owner) view returns (uint256)",
+            "function approve(address spender, uint256 amount) returns (bool)",
+            "function allowance(address owner, address spender) view returns (uint256)",
+            "function symbol() view returns (string)"
+        ];
+
         let cüzdanBagliMi = false;
+        let provider, signer, userAddress;
+        let rawWcProvider = null; // WalletConnect ile bağlanınca disconnect için lazım
+        let activeSlippage = 0.5;
+        let activeGwei = 'auto';
+        let listenerEklendi = false;
 
         function sayfaDegis(e, sayfaAdi) {
             document.querySelectorAll('.page-section').forEach(el => el.classList.remove('active'));
             document.querySelectorAll('.nav-link').forEach(el => el.classList.remove('active'));
             document.getElementById(sayfaAdi + 'Page').classList.add('active');
             if (e && e.target.classList.contains('nav-link')) e.target.classList.add('active');
-            if(sayfaAdi === 'swap') setTimeout(grafikCiz, 50);
+            if (sayfaAdi === 'swap') setTimeout(grafikCiz, 50);
+        }
+
+        function toggleSettings() { document.getElementById('settingsModal').classList.toggle('active'); }
+        function toggleWalletChoice() { document.getElementById('walletChoiceModal').classList.toggle('active'); }
+
+        function setSlippage(val, btn) {
+            activeSlippage = val;
+            document.getElementById('customSlippage').value = '';
+            document.querySelectorAll('.preset-btn').forEach(b => { if (b.innerText.includes('%')) b.classList.remove('active'); });
+            btn.classList.add('active');
+        }
+
+        function clearSlippageBtns() {
+            activeSlippage = document.getElementById('customSlippage').value;
+            document.querySelectorAll('.preset-btn').forEach(b => { if (b.innerText.includes('%')) b.classList.remove('active'); });
+        }
+
+        function setGwei(val, btn) {
+            activeGwei = val;
+            document.querySelectorAll('.preset-btn').forEach(b => { if (!b.innerText.includes('%')) b.classList.remove('active'); });
+            btn.classList.add('active');
         }
 
         let bridgeYonAlis = true;
         function bridgeYonDegistir() {
             bridgeYonAlis = !bridgeYonAlis;
-            const b1 = document.getElementById('bridgeBox1'); 
+            const b1 = document.getElementById('bridgeBox1');
             const b2 = document.getElementById('bridgeBox2');
-            const pInput = document.getElementById('bridgePayAmount'); 
+            const pInput = document.getElementById('bridgePayAmount');
             const rInput = document.getElementById('bridgeReceiveAmount');
 
-            if(bridgeYonAlis) {
+            if (bridgeYonAlis) {
                 b1.style.order = "1"; b2.style.order = "3";
                 pInput.removeAttribute('readonly'); rInput.setAttribute('readonly', 'true');
             } else {
@@ -237,7 +388,7 @@
             const b1 = document.getElementById('box1'); const b2 = document.getElementById('box2');
             const payInput = document.getElementById('payAmount'); const recInput = document.getElementById('receiveAmount');
 
-            if(yonAlis) {
+            if (yonAlis) {
                 b1.style.order = "1"; b2.style.order = "3";
                 payInput.removeAttribute('readonly'); recInput.setAttribute('readonly', 'true');
             } else {
@@ -245,100 +396,239 @@
                 recInput.removeAttribute('readonly'); payInput.setAttribute('readonly', 'true');
             }
             payInput.value = ""; recInput.value = "";
+            updateBalances();
             hesapla();
         }
 
-        async function cuzdanBagla() {
-            if (cüzdanBagliMi) {
-                cüzdanBagliMi = false;
-                document.getElementById("connectBtn").innerText = "Cüzdanı Bağla";
-                const swapBtn = document.getElementById("swapBtn");
-                swapBtn.innerText = "Cüzdanı Bağlayın";
-                swapBtn.classList.remove("active");
+        async function updateBalances() {
+            if (!cüzdanBagliMi || !provider) {
+                document.getElementById("payBalance").innerText = "Bakiye: --";
+                document.getElementById("recBalance").innerText = "Bakiye: --";
                 return;
             }
+            try {
+                const dexContract = new ethers.Contract(DEX_CONTRACT_ADDRESS, DEX_ABI, provider);
+                const trybAddress = await dexContract.trybToken();
+                const trybContract = new ethers.Contract(trybAddress, ERC20_ABI, provider);
+                const bakiyeWei = await trybContract.balanceOf(userAddress);
+                const gercekBakiye = ethers.utils.formatEther(bakiyeWei);
+                const varlikAdi = document.getElementById("assetSelect").options[document.getElementById("assetSelect").selectedIndex].text.split(" ")[0];
 
-            if (window.ethereum) {
-                try {
-                    const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
-                    cüzdanBagliMi = true;
-                    const shortAddr = accounts[0].substring(0, 6) + "..." + accounts[0].substring(accounts[0].length - 4);
-                    document.getElementById("connectBtn").innerText = shortAddr;
-                    
-                    const swapBtn = document.getElementById("swapBtn");
-                    swapBtn.innerText = "Takası Onayla";
-                    swapBtn.classList.add("active");
-                } catch (error) {}
-            } else { alert("MetaMask yüklü değil!"); }
-        }
-
-        function islemYap() {
-            if (!cüzdanBagliMi) {
-                cuzdanBagla();
-            } else {
-                alert("Takas başarıyla onaylandı ve otonom işleme alındı!");
+                if (yonAlis) {
+                    document.getElementById("payBalance").innerText = `Bakiye: ${parseFloat(gercekBakiye).toFixed(2)} TRYB`;
+                    document.getElementById("recBalance").innerText = `Bakiye: -- ${varlikAdi}`;
+                } else {
+                    document.getElementById("payBalance").innerText = `Bakiye: -- ${varlikAdi}`;
+                    document.getElementById("recBalance").innerText = `Bakiye: ${parseFloat(gercekBakiye).toFixed(2)} TRYB`;
+                }
+            } catch (error) {
+                console.error("Bakiye okunamadı (Kontrat ağda olmayabilir):", error);
             }
         }
 
-        let chartInstance = null;
+        function maxBalance(type) {
+            if (!cüzdanBagliMi) return;
+            const text = type === 'pay' ? document.getElementById("payBalance").innerText : document.getElementById("recBalance").innerText;
+            const miktar = text.replace(/[^0-9.,]/g, '').replace(',', '');
+            if (miktar > 0) {
+                document.getElementById("payAmount").value = miktar;
+                hesapla();
+            }
+        }
+
+        // --- 🔧 ORTAK BAĞLANTI SONRASI KURULUM (hem MetaMask hem WalletConnect bunu kullanıyor) ---
+        function ethereumEventListeneriKur(rawProvider) {
+            // ✅ FIX #1: ağ değişimini/hesap değişimini yakalayıp sayfayı otomatik yenile.
+            // "Bir kere swap yapınca ikincisi çalışmıyor" sorununun kaynağı buydu:
+            // ethers.js Web3Provider ağı sadece bir kere algılayıp cache'liyor, işlemden sonra
+            // provider'ın iç durumu bozuluyor ve sonraki eth_call'lar sessizce takılı kalıyordu.
+            try {
+                rawProvider.on('chainChanged', () => window.location.reload());
+                rawProvider.on('accountsChanged', (accounts) => {
+                    if (!accounts || accounts.length === 0) {
+                        cuzdanBaglantisiniKes();
+                    } else {
+                        window.location.reload();
+                    }
+                });
+            } catch (e) { /* bazı providerlarda .on olmayabilir, sorun değil */ }
+        }
+
+        async function finalizeConnection(rawProvider) {
+            // ✅ FIX #1 (devamı): "any" network modu + network event'inde reload
+            provider = new ethers.providers.Web3Provider(rawProvider, "any");
+            provider.on("network", (yeniAg, eskiAg) => {
+                if (eskiAg) window.location.reload();
+            });
+
+            signer = provider.getSigner();
+            userAddress = await signer.getAddress();
+            cüzdanBagliMi = true;
+
+            const shortAddr = userAddress.substring(0, 6) + "..." + userAddress.substring(userAddress.length - 4);
+            document.getElementById("connectBtn").innerText = shortAddr;
+            document.getElementById("swapBtn").innerText = "Takası Onayla";
+            document.getElementById("swapBtn").classList.add("active");
+
+            if (!listenerEklendi) {
+                ethereumEventListeneriKur(rawProvider);
+                listenerEklendi = true;
+            }
+
+            updateBalances();
+            toggleWalletChoice(); // seçim modalını kapat
+        }
+
+        function cuzdanBaglantisiniKes() {
+            cüzdanBagliMi = false; userAddress = null; signer = null; provider = null;
+            listenerEklendi = false;
+            if (rawWcProvider) { try { rawWcProvider.disconnect(); } catch (e) {} rawWcProvider = null; }
+            document.getElementById("connectBtn").innerText = "Cüzdanı Bağla";
+            document.getElementById("swapBtn").innerText = "Cüzdanı Bağlayın";
+            document.getElementById("swapBtn").classList.remove("active");
+            updateBalances();
+        }
+
+        // ✅ FIX: bağlanma sırasında ikinci bir tıklamayı engelleyen bayrak.
+        // Önceki haliyle butona art arda basınca (ya da modal kapanmadan tekrar
+        // tıklayınca) her tıklama yeni bir 'eth_requestAccounts' isteği tetikliyordu
+        // ve MetaMask "already pending, please wait" hatası veriyordu.
+        let baglantiMesgul = false;
+
+        // --- CÜZDAN BAĞLAMA GİRİŞ NOKTASI ---
+        function cuzdanBagla() {
+            if (typeof ethers === 'undefined') { alert("Ağ kütüphanesi yükleniyor, bekleyin."); return; }
+            if (cüzdanBagliMi) { cuzdanBaglantisiniKes(); return; }
+            if (baglantiMesgul) return; // zaten bir bağlanma denemesi sürüyor
+            // ✅ FIX #2: artık direkt MetaMask'a gitmiyoruz, seçim modalı açıyoruz
+            toggleWalletChoice();
+        }
+
+        async function connectInjected() {
+            if (baglantiMesgul) return;
+            if (typeof window.ethereum === 'undefined') {
+                alert("Bu tarayıcıda MetaMask bulunamadı. Safari veya mobilde WalletConnect seçeneğini kullan.");
+                return;
+            }
+            baglantiMesgul = true;
+            try {
+                await window.ethereum.request({ method: 'eth_requestAccounts' });
+                await finalizeConnection(window.ethereum);
+            } catch (error) {
+                console.error("Bağlantı hatası:", error);
+                if (error.code === -32002) {
+                    alert("MetaMask'ta zaten açık bir bağlantı isteği var. Lütfen MetaMask penceresini kontrol et.");
+                }
+            } finally {
+                baglantiMesgul = false;
+            }
+        }
+
+        async function connectViaWalletConnect() {
+            if (baglantiMesgul) return;
+            baglantiMesgul = true;
+            try {
+                const wcProvider = await window.__initWalletConnect(); // artık singleton, tekrar init etmiyor
+                rawWcProvider = wcProvider;
+                await wcProvider.connect(); // her tıklamada sadece connect çağır, init değil
+                await finalizeConnection(wcProvider);
+            } catch (error) {
+                console.error("WalletConnect bağlantı hatası:", error);
+                alert("WalletConnect ile bağlanırken bir sorun oluştu. QR kodu okutmayı tekrar dene.");
+            } finally {
+                baglantiMesgul = false;
+            }
+        }
+
+        let islemSuruyor = false;
+        async function islemYap() {
+            if (!cüzdanBagliMi || !signer) { cuzdanBagla(); return; }
+            if (islemSuruyor) return; // ✅ FIX: işlem sürerken butona tekrar basılmasın (nonce çakışmasını önler)
+
+            const payInput = document.getElementById("payAmount").value;
+            if (!payInput || parseFloat(payInput) <= 0) { alert("Lütfen takas miktarı girin!"); return; }
+
+            let txOptions = {};
+            if (activeGwei === 'normal') txOptions.gasPrice = ethers.utils.parseUnits("30", "gwei");
+            if (activeGwei === 'fast') txOptions.gasPrice = ethers.utils.parseUnits("50", "gwei");
+
+            const assetName = document.getElementById("assetSelect").value;
+            const miktarWei = ethers.utils.parseEther(payInput.toString());
+            const swapBtn = document.getElementById("swapBtn");
+
+            islemSuruyor = true;
+            swapBtn.disabled = true;
+            try {
+                swapBtn.innerText = "İşlem Bekleniyor...";
+                const dexContract = new ethers.Contract(DEX_CONTRACT_ADDRESS, DEX_ABI, signer);
+
+                const trybAddress = await dexContract.trybToken();
+                const trybContract = new ethers.Contract(trybAddress, ERC20_ABI, signer);
+
+                const allowance = await trybContract.allowance(userAddress, DEX_CONTRACT_ADDRESS);
+
+                if (allowance.lt(miktarWei)) {
+                    alert("Kontratın takas yapabilmesi için MetaMask'tan TRYB harcama izni (Approve) vermeniz gerekiyor.");
+                    const approveTx = await trybContract.approve(DEX_CONTRACT_ADDRESS, ethers.constants.MaxUint256, txOptions);
+                    await approveTx.wait();
+                    alert("İzin onaylandı! Şimdi asıl takas işlemi (Buy) başlıyor.");
+                }
+
+                const tx = await dexContract.buyAsset(assetName, miktarWei, txOptions);
+                alert("Takas emri başarıyla gönderildi!\nİşlem Hash: " + tx.hash);
+
+                await tx.wait();
+                updateBalances();
+                alert("Takas Başarıyla Gerçekleşti!");
+
+            } catch (error) {
+                console.error(error);
+                if (error.code === 4001) alert("İşlemi iptal ettiniz.");
+                else if (error.code === "NONCE_EXPIRED" || (error.message && error.message.includes("nonce"))) {
+                    alert("Nonce (işlem sırası) uyuşmazlığı oluştu. MetaMask'ta Ayarlar > Gelişmiş > 'Etkinliği Sıfırla' yapıp tekrar dene. Bu genelde aynı cüzdanın başka bir yerden (örn. botunuz) de işlem gönderiyor olmasından kaynaklanır.");
+                }
+                else alert("İşlem hatası! Cüzdanda yeterli TRYB (veya işlem ücreti için AVAX) olduğundan emin olun.");
+            } finally {
+                swapBtn.innerText = "Takası Onayla";
+                swapBtn.disabled = false;
+                islemSuruyor = false;
+            }
+        }
+
+        let chartInstance = null; let lineSeries = null; let isDrawing = false;
         function toggleChart() {
             const chartEl = document.getElementById('chartContainer');
             chartEl.classList.toggle('active');
-            if(chartEl.classList.contains('active')) setTimeout(grafikCiz, 50);
+            if (chartEl.classList.contains('active')) setTimeout(grafikCiz, 50);
         }
 
-        let isDrawing = false;
-
         async function grafikCiz() {
-            if (isDrawing) return; 
-            isDrawing = true;
-
+            if (isDrawing) return; isDrawing = true;
             try {
                 const container = document.getElementById('otonom_grafik');
                 const varlik = document.getElementById("assetSelect").value;
-                
                 let veri = [];
                 try {
                     const res = await fetch(`${API_BASE}/api/history/${varlik}`);
                     const raw = await res.json();
-                    
                     let islenmis = raw.map(r => ({ time: Number(r.time), value: Number(r.value) }));
                     let sonZaman = 0;
-                    for (let p of islenmis) {
-                        if (p.time > sonZaman) {
-                            veri.push(p);
-                            sonZaman = p.time;
-                        }
-                    }
-                } catch (err) {
-                    console.error("Veri çekilemedi:", err);
-                }
+                    for (let p of islenmis) { if (p.time > sonZaman) { veri.push(p); sonZaman = p.time; } }
+                } catch (err) { }
 
-                container.innerHTML = '';
-                chartInstance = null;
-                
-                if (veri.length === 0) {
-                    container.innerHTML = '<div style="color:#ffcc00; text-align:center; padding-top:200px;">Grafik verisi bekleniyor...</div>';
-                    return;
-                }
-                
-                const width = container.clientWidth || 600;
-                const height = container.clientHeight || 450;
-                
+                container.innerHTML = ''; chartInstance = null;
+                if (veri.length === 0) { container.innerHTML = '<div style="color:#ffcc00; text-align:center; padding-top:200px;">Grafik verisi bekleniyor...</div>'; return; }
+                if (anlikFiyat > 0 && veri.length > 0) veri[veri.length - 1].value = anlikFiyat;
+
+                const width = container.clientWidth || 600; const height = container.clientHeight || 450;
                 chartInstance = LightweightCharts.createChart(container, {
                     layout: { background: { type: 'solid', color: '#131a2a' }, textColor: '#ffffff' },
                     grid: { vertLines: { color: 'rgba(255, 255, 255, 0.05)' }, horzLines: { color: 'rgba(255, 255, 255, 0.05)' } },
-                    width: width,
-                    height: height,
+                    width: width, height: height,
                 });
-
-                const lineSeries = chartInstance.addLineSeries({ color: '#00d2ff', lineWidth: 2 });
-                lineSeries.setData(veri);
-                chartInstance.timeScale().fitContent();
-
-            } finally {
-                isDrawing = false;
-            }
+                lineSeries = chartInstance.addLineSeries({ color: '#00d2ff', lineWidth: 2 });
+                lineSeries.setData(veri); chartInstance.timeScale().fitContent();
+            } finally { isDrawing = false; }
         }
 
         let anlikFiyat = 0;
@@ -350,6 +640,7 @@
                 anlikFiyat = data.price;
             } catch (err) { anlikFiyat = 0; }
             hesapla();
+            if (chartInstance && lineSeries && anlikFiyat > 0) grafikCiz();
         }
 
         function hesapla() {
@@ -357,21 +648,15 @@
             const rec = document.getElementById("receiveAmount");
             const miktar = parseFloat(yonAlis ? pay.value : rec.value) || 0;
             if (anlikFiyat <= 0) return;
-
-            if(yonAlis) {
-                rec.value = miktar > 0 ? (miktar / anlikFiyat).toFixed(4) : "";
-            } else {
-                pay.value = miktar > 0 ? (miktar * anlikFiyat).toFixed(2) : "";
-            }
+            if (yonAlis) rec.value = miktar > 0 ? (miktar / anlikFiyat).toFixed(4) : "";
+            else pay.value = miktar > 0 ? (miktar * anlikFiyat).toFixed(2) : "";
         }
 
         document.getElementById("payAmount").addEventListener("input", hesapla);
         document.getElementById("receiveAmount").addEventListener("input", hesapla);
 
         window.onload = () => {
-            fiyatGetir();
-            setInterval(fiyatGetir, 15000);
-            setTimeout(grafikCiz, 100);
+            fiyatGetir(); setInterval(fiyatGetir, 15000); setTimeout(grafikCiz, 100);
         };
     </script>
 </body>
