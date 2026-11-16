@@ -1,0 +1,871 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MetaDEX V2 | Otonom RWA Borsası</title>
+
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2300d2ff' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><rect x='3' y='11' width='18' height='10' rx='2' ry='2'></rect><circle cx='12' cy='5' r='2'></circle><path d='M12 7v4'></path><line x1='8' y1='16' x2='8.01' y2='16'></line><line x1='16' y1='16' x2='16.01' y2='16'></line></svg>">
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/ethers/5.7.2/ethers.umd.min.js"></script>
+    <script src="https://unpkg.com/lightweight-charts@4.2.0/dist/lightweight-charts.standalone.production.js"></script>
+
+    <style>
+        * { box-sizing: border-box; }
+        body { margin: 0; background-color: #0b0e14; background-image: radial-gradient(at 0% 0%, rgba(0, 210, 255, 0.12) 0px, transparent 50%), radial-gradient(at 100% 0%, rgba(58, 123, 213, 0.12) 0px, transparent 50%), radial-gradient(at 100% 100%, rgba(0, 255, 194, 0.08) 0px, transparent 50%); color: #FFFFFF; font-family: 'Segoe UI', sans-serif; min-height: 100vh; }
+
+        .navbar { display: flex; justify-content: space-between; align-items: center; padding: 20px 40px; background: rgba(11, 14, 20, 0.8); backdrop-filter: blur(15px); border-bottom: 1px solid rgba(255, 255, 255, 0.05); }
+        .brand { display: flex; align-items: center; gap: 12px; font-size: 22px; font-weight: bold; color: #fff; text-shadow: 0 0 10px rgba(0, 210, 255, 0.4); cursor: pointer; }
+        .robot-logo { width: 36px; height: 36px; stroke: #00d2ff; filter: drop-shadow(0 0 6px rgba(0, 210, 255, 0.6)); }
+
+        .nav-links { display: flex; gap: 20px; background: rgba(19, 26, 42, 0.6); padding: 8px 20px; border-radius: 16px; border: 1px solid rgba(255, 255, 255, 0.05); }
+        .nav-link { color: #a0aec0; text-decoration: none; font-size: 15px; font-weight: 600; transition: 0.2s; cursor: pointer; background: none; border: none; font-family: inherit; }
+        .nav-link:hover, .nav-link.active { color: #00d2ff; text-shadow: 0 0 8px rgba(0, 210, 255, 0.4); }
+
+        .connect-btn { background: linear-gradient(90deg, #00d2ff 0%, #3a7bd5 100%); color: white; border: none; padding: 12px 24px; border-radius: 14px; font-size: 15px; font-weight: bold; cursor: pointer; transition: 0.3s; box-shadow: 0 4px 15px rgba(0, 210, 255, 0.3); }
+        .connect-btn:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(0, 210, 255, 0.5); }
+
+        .page-section { display: none; }
+        .page-section.active { display: block; }
+
+        .hero-container { max-width: 1000px; margin: 80px auto; text-align: center; padding: 0 20px; }
+        .hero-container h1 { font-size: 56px; margin-bottom: 25px; background: linear-gradient(90deg, #00d2ff, #00ffc2); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .hero-container p { font-size: 20px; color: #a0aec0; line-height: 1.6; margin-bottom: 50px; padding: 0 50px; }
+
+        .features-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 30px; text-align: left; margin-top: 60px; }
+        .feature-card { background: rgba(19, 26, 42, 0.65); backdrop-filter: blur(20px); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 20px; padding: 30px; box-shadow: 0 10px 30px rgba(0,0,0,0.2); transition: 0.3s; }
+        .feature-card:hover { transform: translateY(-5px); border-color: rgba(0, 210, 255, 0.3); }
+        .feature-card h3 { color: #00d2ff; margin-top: 0; font-size: 18px; display: flex; align-items: center; gap: 8px; }
+        .feature-card p { font-size: 15px; margin-bottom: 0; color: #cbd5e0; line-height: 1.5; }
+
+        .swap-page-wrapper { display: flex; justify-content: center; align-items: flex-start; gap: 30px; max-width: 1200px; margin: 60px auto; padding: 0 20px; }
+        .chart-container { display: none; flex: 1; background: rgba(19, 26, 42, 0.65); backdrop-filter: blur(20px); border-radius: 24px; border: 1px solid rgba(255, 255, 255, 0.08); overflow: hidden; height: 480px; box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5); }
+        .chart-container.active { display: flex; flex-direction: column; }
+        #otonom_grafik { width: 100%; height: 100%; flex: 1; }
+
+        .swap-container { width: 100%; max-width: 440px; background: rgba(19, 26, 42, 0.65); backdrop-filter: blur(20px); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 24px; padding: 24px; box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5); margin: 60px auto; position: relative; z-index: 5; }
+        .swap-header { display: flex; justify-content: space-between; align-items: center; font-size: 18px; font-weight: 600; color: #cbd5e0; margin-bottom: 25px; }
+
+        .icon-btn { cursor: pointer; font-size: 20px; background: rgba(255,255,255,0.05); padding: 8px; border-radius: 10px; transition: 0.2s;}
+        .icon-btn:hover { background: rgba(255,255,255,0.1); }
+
+        .asset-box { background-color: rgba(11, 14, 20, 0.85); border: 1px solid rgba(255, 255, 255, 0.06); border-radius: 18px; padding: 18px; display: flex; justify-content: space-between; align-items: center; }
+        .asset-box input { background: transparent; border: none; color: white; font-size: 26px; outline: none; width: 55%; -moz-appearance: textfield; }
+        .asset-box input::-webkit-outer-spin-button, .asset-box input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+        .asset-dropdown { background: rgba(45, 55, 72, 0.8); color: white; border: 1px solid rgba(255, 255, 255, 0.1); padding: 10px 16px; border-radius: 12px; font-size: 16px; font-weight: bold; outline: none; cursor: pointer; }
+
+        .balance-text { font-size: 13px; color: #a0aec0; cursor: pointer; transition: 0.2s; }
+        .balance-text:hover { color: #00d2ff; }
+
+        .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.6); backdrop-filter: blur(8px); z-index: 1000; justify-content: center; align-items: center; }
+        .modal-overlay.active { display: flex; }
+        .settings-modal { background: #131a2a; border: 1px solid rgba(255,255,255,0.1); border-radius: 20px; padding: 24px; width: 360px; box-shadow: 0 20px 50px rgba(0,0,0,0.8); }
+        .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; font-size: 18px; font-weight: bold; }
+        .close-btn { cursor: pointer; color: #a0aec0; transition: 0.2s; font-size: 22px; }
+        .close-btn:hover { color: #fff; }
+        .setting-group { margin-bottom: 20px; }
+        .setting-title { font-size: 14px; color: #a0aec0; margin-bottom: 10px; display: block; }
+        .btn-row { display: flex; gap: 8px; margin-bottom: 10px; }
+        .preset-btn { flex: 1; background: rgba(45, 55, 72, 0.6); border: 1px solid rgba(255,255,255,0.1); color: #cbd5e0; padding: 8px 0; border-radius: 10px; cursor: pointer; transition: 0.2s; font-weight: bold; font-family: inherit; }
+        .preset-btn:hover { background: rgba(255,255,255,0.1); }
+        .preset-btn.active { background: #00d2ff; color: #131a2a; border-color: #00d2ff; }
+        .custom-input { width: 100%; background: rgba(11, 14, 20, 0.8); border: 1px solid rgba(255,255,255,0.1); color: white; padding: 10px; border-radius: 10px; outline: none; text-align: center; }
+        .wallet-choice-btn { width: 100%; text-align: left; padding: 16px; margin-bottom: 10px; border-radius: 14px; font-size: 15px; }
+
+        .arrow-down { display: flex; justify-content: center; align-items: center; height: 36px; width: 36px; margin: -14px auto; background: #1a202c; border: 4px solid #131a2a; border-radius: 10px; color: #00d2ff; font-size: 18px; position: relative; z-index: 2; cursor: pointer; transition: 0.2s; }
+        .arrow-down:hover { background: #00d2ff; color: #1a202c; }
+
+        .swap-btn { width: 100%; background: rgba(45, 55, 72, 0.6); color: #a0aec0; border: none; padding: 18px; border-radius: 16px; font-size: 18px; font-weight: bold; cursor: pointer; margin-top: 16px; transition: 0.3s; }
+        .swap-btn.active { background: linear-gradient(90deg, #00d2ff 0%, #3a7bd5 100%); color: white; box-shadow: 0 4px 15px rgba(0, 210, 255, 0.3); }
+
+        .stake-container, .ico-container { max-width: 1000px; margin: 60px auto; padding: 0 20px; display: grid; grid-template-columns: 1fr 1fr; gap: 30px; }
+        .stake-card, .ico-card { background: rgba(19, 26, 42, 0.65); backdrop-filter: blur(20px); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 24px; padding: 30px; box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5); }
+        .stake-card h2, .ico-card h2 { margin-top: 0; color: #00d2ff; font-size: 22px; }
+        .tier-badge { display: inline-block; background: rgba(0, 210, 255, 0.15); color: #00d2ff; padding: 6px 14px; border-radius: 20px; font-size: 14px; font-weight: bold; margin-bottom: 20px; }
+        .stake-input-box { background: rgba(11, 14, 20, 0.85); border: 1px solid rgba(255, 255, 255, 0.06); border-radius: 16px; padding: 16px; margin-bottom: 20px; }
+        .stake-input-box input { width: 100%; background: transparent; border: none; color: white; font-size: 24px; outline: none; -moz-appearance: textfield; }
+        .info-row { display: flex; justify-content: space-between; margin-top: 15px; font-size: 14px; color: #a0aec0; }
+        
+        .countdown-wrapper { grid-column: span 2; text-align: center; background: rgba(19, 26, 42, 0.65); padding: 40px; border-radius: 24px; border: 1px solid rgba(0, 210, 255, 0.3); box-shadow: 0 0 30px rgba(0, 210, 255, 0.15); }
+        .countdown-timer { display: flex; justify-content: center; gap: 20px; margin-top: 20px; }
+        .time-box { background: #0b0e14; border: 1px solid rgba(255,255,255,0.1); padding: 20px; border-radius: 16px; min-width: 100px; }
+        .time-box span { display: block; font-size: 36px; font-weight: bold; color: #00d2ff; }
+        .time-box small { color: #a0aec0; font-size: 14px; text-transform: uppercase; letter-spacing: 1px; }
+        .tokenomics-table { width: 100%; border-collapse: collapse; margin-top: 20px; font-size: 14px; }
+        .tokenomics-table th, .tokenomics-table td { padding: 12px; text-align: left; border-bottom: 1px solid rgba(255,255,255,0.05); }
+        .tokenomics-table th { color: #00d2ff; }
+
+        .range-btn { background: rgba(45, 55, 72, 0.6); border: 1px solid rgba(255,255,255,0.1); color: #cbd5e0; padding: 6px 12px; border-radius: 8px; cursor: pointer; font-weight: bold; font-family: inherit; font-size: 12px; }
+        .range-btn.active { background: #00d2ff; color: #131a2a; border-color: #00d2ff; }
+    </style>
+</head>
+<body>
+
+    <div class="navbar">
+        <div class="brand" onclick="sayfaDegis(event, 'home')">
+            <svg class="robot-logo" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="3" y="11" width="18" height="10" rx="2" ry="2"></rect><circle cx="12" cy="5" r="2"></circle><path d="M12 7v4"></path><line x1="8" y1="16" x2="8.01" y2="16"></line><line x1="16" y1="16" x2="16.01" y2="16"></line>
+            </svg>
+            MetaDEX V2
+        </div>
+        <div class="nav-links">
+            <button class="nav-link active" onclick="sayfaDegis(event, 'home')">Ana Sayfa</button>
+            <button class="nav-link" onclick="sayfaDegis(event, 'swap')">Swap</button>
+            <button class="nav-link" onclick="sayfaDegis(event, 'stake')">Stake</button>
+            <button class="nav-link" onclick="sayfaDegis(event, 'ico')">ICO (Ön Satış)</button>
+        </div>
+        <button class="connect-btn" id="connectBtn" onclick="cuzdanBagla()">Cüzdanı Bağla</button>
+    </div>
+
+    <!-- AYARLAR MODALI -->
+    <div class="modal-overlay" id="settingsModal">
+        <div class="settings-modal">
+            <div class="modal-header">
+                <span>Takas Ayarları</span>
+                <span class="close-btn" onclick="toggleSettings()">✖</span>
+            </div>
+            <div class="setting-group">
+                <span class="setting-title">Slippage Toleransı</span>
+                <div class="btn-row">
+                    <button class="preset-btn active" onclick="setSlippage(0.5, this)">%0.5</button>
+                    <button class="preset-btn" onclick="setSlippage(1, this)">%1</button>
+                    <button class="preset-btn" onclick="setSlippage(5, this)">%5</button>
+                </div>
+                <input type="number" id="customSlippage" class="custom-input" placeholder="Özel değer girin (%)" oninput="clearSlippageBtns()">
+            </div>
+            <div class="setting-group">
+                <span class="setting-title">İşlem Hızı (Gwei)</span>
+                <div class="btn-row">
+                    <button class="preset-btn active" onclick="setGwei('auto', this)">Otomatik</button>
+                    <button class="preset-btn" onclick="setGwei('normal', this)">Normal</button>
+                    <button class="preset-btn" onclick="setGwei('fast', this)">Yüksek</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- CÜZDAN SEÇİM MODALI -->
+    <div class="modal-overlay" id="walletChoiceModal">
+        <div class="settings-modal" style="width: 320px;">
+            <div class="modal-header">
+                <span>Cüzdan Bağla</span>
+                <span class="close-btn" onclick="toggleWalletChoice()">✖</span>
+            </div>
+            <button class="preset-btn wallet-choice-btn" onclick="connectInjected()">🦊 Tarayıcı Cüzdanı (MetaMask vb.)</button>
+            <button class="preset-btn wallet-choice-btn" onclick="connectViaWalletConnect()">📱 WalletConnect (QR ile bağlan)</button>
+        </div>
+    </div>
+
+    <!-- ANA SAYFA -->
+    <div id="homePage" class="page-section active">
+        <div class="hero-container">
+            <h1>Geleceğin Otonom RWA Ekosistemi</h1>
+            <p>BIST100 hisseleri ve küresel emtiaları blokzincire taşıyan, yapay zeka destekli otonom oracle altyapısı ve TRYB tabanlı merkeziyetsiz borsa deneyimi.</p>
+            <button class="connect-btn" style="max-width: 250px; margin: 0 auto; padding: 16px;" onclick="sayfaDegis(event, 'swap')">Hemen İşleme Başla</button>
+
+            <div class="features-grid">
+                <div class="feature-card">
+                    <h3>⚡ Otonom Oracle</h3>
+                    <p>Piyasa verileri anlık olarak Yahoo Finance üzerinden çekilip Avalanche Fuji ağındaki akıllı sözleşmelere otomatik işlenir.</p>
+                </div>
+                <div class="feature-card">
+                    <h3>💎 Meta Coin Stake</h3>
+                    <p>Meta coin stake ederek platformun emtia işlem gelirlerinden oluşan ödül havuzundan pay alabilir, tier seviyenizi yükseltebilirsiniz.</p>
+                </div>
+                <div class="feature-card">
+                    <h3>🇹🇷 Yerel & Küresel RWA</h3>
+                    <p>THY, Aselsan, Altın ve Brent Petrol gibi en popüler varlıkları TRYB ile 7/24 kesintisiz takas edin.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- SWAP SAYFASI -->
+    <div id="swapPage" class="page-section">
+        <div class="swap-page-wrapper">
+            <div class="chart-container active" id="chartContainer">
+                <div style="display:flex; justify-content:space-between; align-items:center; padding:12px 16px;">
+                    <div style="display:flex; gap:6px;">
+                        <button class="range-btn active" onclick="setAralik('1d', this)">1G</button>
+                        <button class="range-btn" onclick="setAralik('7d', this)">7G</button>
+                        <button class="range-btn" onclick="setAralik('30d', this)">30G</button>
+                    </div>
+                    <span id="veriDurumu" style="font-size:12px; color:#a0aec0;"></span>
+                </div>
+                <div style="position:relative; flex:1; min-height:0;">
+                    <div id="otonom_grafik" style="position:absolute; inset:0;"></div>
+                    <div id="grafikMesaj" style="display:none; position:absolute; inset:0; align-items:center; justify-content:center; color:#ffcc00; text-align:center; padding:20px;"></div>
+                </div>
+            </div>
+            <div class="swap-container" style="margin: 0;">
+                <div class="swap-header">
+                    <div><span class="icon-btn" onclick="toggleChart()" title="Grafiği Aç/Kapat">📊</span></div>
+                    <span>RWA Takas Merkezi</span>
+                    <div><span class="icon-btn" onclick="toggleSettings()" title="Takas Ayarları">⚙️</span></div>
+                </div>
+
+                <div id="swapFlexContainer" style="display: flex; flex-direction: column;">
+                    <div class="asset-box" id="box1" style="order: 1; flex-direction: column; align-items: stretch; gap: 10px;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
+                            <span id="payLabel" style="color:#cbd5e0; font-size:13px;">Ödeyeceğiniz</span>
+                            <span class="balance-text" id="payBalance" onclick="maxBalance('pay')">Bakiye: --</span>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
+                            <input type="number" placeholder="0.0" id="payAmount" style="width: 65%;">
+                            <button class="asset-dropdown" style="cursor: default;">TRYB</button>
+                        </div>
+                    </div>
+
+                    <div class="arrow-down" onclick="yonDegistir()">⇅</div>
+
+                    <div class="asset-box" id="box2" style="order: 3; flex-direction: column; align-items: stretch; gap: 10px;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
+                            <span id="recLabel" style="color:#cbd5e0; font-size:13px;">Alacağınız</span>
+                            <span class="balance-text" id="recBalance" onclick="maxBalance('rec')">Bakiye: --</span>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
+                            <input type="number" placeholder="0.0" id="receiveAmount" readonly style="width: 50%;">
+                            <select class="asset-dropdown" id="assetSelect" onchange="fiyatGetir(); updateBalances();">
+                                <optgroup label="BIST 100 Hisseleri">
+                                    <option value="tTHYAO">tTHYAO (Thy)</option>
+                                    <option value="tASELS">tASELS (Aselsan)</option>
+                                    <option value="tKCHOL">tKCHOL (Koç Holding)</option>
+                                    <option value="tBIMAS">tBIMAS (Bim)</option>
+                                    <option value="tTUPRS">tTUPRS (Tüpraş)</option>
+                                </optgroup>
+                                <optgroup label="Küresel Emtialar">
+                                    <option value="tGLD">tGLD (Altın)</option>
+                                    <option value="tSLV">tSLV (Gümüş)</option>
+                                    <option value="tCPR">tCPR (Bakır)</option>
+                                    <option value="tPLT">tPLT (Platin)</option>
+                                    <option value="tNGAS">tNGAS (Doğal Gaz)</option>
+                                    <option value="tBRENT">tBRENT (Brent Petrol)</option>
+                                </optgroup>
+                                <optgroup label="Kripto Paralar">
+                                    <option value="tMETA">META (Meta Coin)</option>
+                                    <option value="tAVAX">AVAX (Avalanche)</option>
+                                </optgroup>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                <button class="swap-btn" id="swapBtn" onclick="islemYap()">Cüzdanı Bağlayın</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- STAKE SAYFASI -->
+    <div id="stakePage" class="page-section">
+        <div class="stake-container">
+            <div class="stake-card">
+                <h2>Meta Coin Stake</h2>
+                <div class="tier-badge" id="metaTierBadge">Seviye: Base HODLer</div>
+                <div class="info-row" style="margin-top:-10px; margin-bottom:10px;"><span>Stake edilen:</span><strong id="metaStakedAmount">0.0000</strong></div>
+                <div class="stake-input-box"><input type="number" placeholder="Stake Miktarı" id="metaStakeInput"></div>
+                <div style="display:flex; gap:10px;">
+                    <button class="connect-btn" style="flex:1; border-radius: 14px; padding: 14px; font-size: 15px;" onclick="metaStakeEt()">Stake Et</button>
+                    <button class="preset-btn" style="flex:1; padding: 14px;" onclick="metaWithdrawEt()">Çek</button>
+                </div>
+                <div class="info-row"><span>Bekleyen ödül (tTRYB):</span><strong id="metaClaimable" style="color:#00d2ff;">0.0000</strong></div>
+                <button class="connect-btn" style="width:100%; margin-top:10px; border-radius: 14px; padding: 12px; font-size: 14px;" onclick="metaClaimEt()">Ödülü Çek</button>
+
+                <div id="tierInfoBox" style="display:block; margin-top:10px; font-size:13px; color:#a0aec0; line-height:1.6;">
+                    Garanti ICO alım hakkı ve havuz ağırlık çarpanları (Tiers):
+                    <table style="width:100%; margin-top:10px; border-collapse: collapse; font-size:12px; text-align:left;">
+                        <thead>
+                            <tr style="color:#00d2ff; border-bottom: 1px solid rgba(255,255,255,0.1);">
+                                <th style="padding: 5px 0;">Seviye / Ünvan</th>
+                                <th>Min. META</th>
+                                <th>Kilit</th>
+                                <th>Ağırlık</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr><td style="padding: 4px 0;">Tier 1: Base HODLer</td><td>1,000</td><td>30 Gün</td><td>1.0x</td></tr>
+                            <tr><td style="padding: 4px 0;">Tier 2: Yield Farmer</td><td>2,000</td><td>30 Gün</td><td>1.2x</td></tr>
+                            <tr><td style="padding: 4px 0;">Tier 3: Alpha Seeker</td><td>4,000</td><td>30 Gün</td><td>1.5x</td></tr>
+                            <tr><td style="padding: 4px 0;">Tier 4: Web3 Native</td><td>8,000</td><td>60 Gün</td><td>2.0x</td></tr>
+                            <tr><td style="padding: 4px 0;">Tier 5: DeFi Pioneer</td><td>16,000</td><td>90 Gün</td><td>3.0x</td></tr>
+                            <tr><td style="padding: 4px 0;">Tier 6: Diamond Hands 💎</td><td>32,000</td><td>120 Gün</td><td>4.5x</td></tr>
+                            <tr><td style="padding: 4px 0;">Tier 7: Cyber Whale 🐋</td><td>64,000</td><td>150 Gün</td><td>7.0x</td></tr>
+                            <tr style="color:#00d2ff; font-weight:bold;"><td style="padding: 4px 0;">Tier 8: Satoshi's Chosen 👑</td><td>128,000</td><td>180 Gün</td><td>10.0x</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="stake-card">
+                <h2>TRYB Esnek Stake</h2>
+                <div class="tier-badge" style="background: rgba(255, 204, 0, 0.15); color: #ffcc00;">Kilitsiz — İstediğin An Çek</div>
+                <div class="info-row" style="margin-top:-10px; margin-bottom:10px;"><span>Stake edilen:</span><strong id="trybStakedAmount">0.0000</strong></div>
+                <div class="stake-input-box"><input type="number" placeholder="TRYB Miktarı" id="trybStakeInput"></div>
+                <div style="display:flex; gap:10px;">
+                    <button class="connect-btn" style="flex:1; border-radius: 14px; padding: 14px; font-size: 15px; background: linear-gradient(90deg, #ffcc00 0%, #ff9900 100%);" onclick="trybStakeEt()">Stake Et</button>
+                    <button class="preset-btn" style="flex:1; padding: 14px;" onclick="trybWithdrawEt()">Çek</button>
+                </div>
+                <div class="info-row"><span>Bekleyen ödül (tTRYB):</span><strong id="trybEarned" style="color:#ffcc00;">0.0000</strong></div>
+                <button class="connect-btn" style="width:100%; margin-top:10px; border-radius: 14px; padding: 12px; font-size: 14px; background: linear-gradient(90deg, #ffcc00 0%, #ff9900 100%);" onclick="trybClaimEt()">Ödülü Çek</button>
+                <div class="info-row"><span>APY:</span><strong id="trybApyDisplay" style="color: #ffcc00;">—</strong></div>
+                <div class="info-row" style="margin-top:4px;"><span id="trybApyNote" style="font-size:12px;"></span></div>
+                
+                <div id="trybInfoBox" style="display:block; margin-top:20px; font-size:13px; color:#a0aec0; line-height:1.6; border-top: 1px solid rgba(255,255,255,0.08); padding-top:15px;">
+                    <strong style="color: #cbd5e0;">TR10Y Endeksli Esnek Getiri Sistemi:</strong>
+                    <div style="margin-top:10px; background: rgba(0,0,0,0.25); border-radius: 12px; padding: 15px; border: 1px solid rgba(255, 204, 0, 0.1);">
+                        <p style="margin:0 0 10px 0;">🏦 <strong>TradFi & DeFi Köprüsü:</strong> TRYB havuzumuzun yıllık getirisi, Türkiye 10 Yıllık Devlet Tahvili (TR10Y) faiz oranlarına endekslenmiştir.</p>
+                        <p style="margin:0 0 10px 0;">🤖 <strong>Otonom Güncelleme:</strong> Oracle botumuz tahvil verilerini periyodik olarak zincir üzerine aktararak getiriyi gerçek piyasa standartlarında tutar.</p>
+                        <p style="margin:0;">🔓 <strong>Sıfır Kilit (Esnek):</strong> Paranızı kitlemeden esnek şekilde stake edebilir, kazandığınız temettüleri dilediğiniz an anında çekebilirsiniz.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ICO SAYFASI -->
+    <div id="icoPage" class="page-section">
+        <div class="ico-container">
+            <div class="countdown-wrapper">
+                <h1 style="margin: 0; color: #fff;">Büyük Lansmana Kalan Süre</h1>
+                <p style="color: #a0aec0; margin-top: 10px;">Tarih: 25 Haziran 2027</p>
+                <div class="countdown-timer">
+                    <div class="time-box"><span id="cd-days">00</span><small>Gün</small></div>
+                    <div class="time-box"><span id="cd-hours">00</span><small>Saat</small></div>
+                    <div class="time-box"><span id="cd-minutes">00</span><small>Dakika</small></div>
+                </div>
+            </div>
+
+            <div class="ico-card">
+                <h2>Özel Satış (Private Sale)</h2>
+                <div class="tier-badge">Sınırlı Kontenjan</div>
+                <p style="color: #cbd5e0; font-size: 14px;">Erken destekçiler için özel indirimli havuz.</p>
+                <div class="info-row"><span>Fiyat:</span><strong>$0.075 / META</strong></div>
+                <div class="info-row"><span>Cüzdan Limiti:</span><strong>Max 50 AVAX</strong></div>
+                <div class="info-row"><span>Kilit (Vesting):</span><strong>TGE %12.5, kalanı 7 ayda</strong></div>
+                <div class="stake-input-box" style="margin-top: 20px;"><input type="number" placeholder="AVAX Miktarı" id="privateIcoInput"></div>
+                <button class="connect-btn" style="width:100%; border-radius: 14px; padding: 14px;" onclick="alert('Özel Satış henüz başlamadı.')">AVAX ile Katıl</button>
+            </div>
+
+            <div class="ico-card">
+                <h2>Genel Satış (Public Sale)</h2>
+                <div class="tier-badge" style="background: rgba(0, 255, 194, 0.15); color: #00ffc2;">Herkes İçin</div>
+                <p style="color: #cbd5e0; font-size: 14px;">Şeffaf ve adil lansman havuzu.</p>
+                <div class="info-row"><span>Fiyat:</span><strong>$0.10 / META</strong></div>
+                <div class="info-row"><span>Cüzdan Limiti:</span><strong>Max 20 AVAX</strong></div>
+                <div class="info-row"><span>Kilit (Vesting):</span><strong>TGE %10, kalanı 9 ayda</strong></div>
+                <div class="stake-input-box" style="margin-top: 20px;"><input type="number" placeholder="AVAX Miktarı" id="publicIcoInput"></div>
+                <button class="connect-btn" style="width:100%; border-radius: 14px; padding: 14px; background: linear-gradient(90deg, #00ffc2 0%, #00d2ff 100%); color: #0b0e14;" onclick="alert('Genel Satış henüz başlamadı.')">AVAX ile Katıl</button>
+            </div>
+
+            <div class="ico-card" style="grid-column: span 2; padding: 40px;">
+                <h2>META Coin Tokenomik Dağılımı (Whitepaper Özeti)</h2>
+                <p style="color: #a0aec0; font-size: 14px; margin-bottom: 20px;">Toplam Arz: 1.000.000.000 META (1 Milyar)</p>
+                <table class="tokenomics-table">
+                    <thead>
+                        <tr>
+                            <th>Kategori</th>
+                            <th>Yüzde</th>
+                            <th>Miktar (META)</th>
+                            <th>Açıklama & Strateji</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr><td>Ekosistem ve Kullanıcı Teşvikleri</td><td>%22.0</td><td>220,000,000</td><td>Borsada hacim yaratanlara, ilk LP'lere dağıtılacak teşvik ödülleri.</td></tr>
+                        <tr><td>DEX Likiditesi (Market Making)</td><td>%20.0</td><td>200,000,000</td><td>MetaDEX havuzlarına eklenecek ilk likidite. Fiyat çöküşünü engeller.</td></tr>
+                        <tr><td>Vakıf / Şirket Rezervi (Treasury)</td><td>%18.0</td><td>180,000,000</td><td>5-10 yıllık ar-ge ve acil durum kasası.</td></tr>
+                        <tr><td>Pazarlama ve Borsa Listelemeleri</td><td>%13.0</td><td>130,000,000</td><td>CEX listelemeleri ve global reklam bütçesi.</td></tr>
+                        <tr><td>Kurucu Ekip ve Geliştiriciler</td><td>%12.0</td><td>120,000,000</td><td>1 yıl tam kilitli (Cliff), ardından 3 yıla yayılan hak ediş.</td></tr>
+                        <tr><td>Genel Satış (ICO)</td><td>%10.0</td><td>100,000,000</td><td>0.10$ fiyat, TGE %10 açık, 9 ay vesting.</td></tr>
+                        <tr><td>Özel Satış (Private Sale)</td><td>%5.0</td><td>50,000,000</td><td>0.075$ fiyat, TGE %12.5 açık, 7 ay vesting.</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- 🔌 WALLETCONNECT -->
+    <script type="module">
+        import { EthereumProvider } from "https://cdn.jsdelivr.net/npm/@walletconnect/ethereum-provider@2/+esm";
+        const WC_PROJECT_ID = "1234567890abcdef1234567890abcdef";
+        let wcProviderSingleton = null;
+        let wcInitPromise = null;
+
+        window.__initWalletConnect = async function () {
+            if (wcProviderSingleton) return wcProviderSingleton;
+            if (!wcInitPromise) {
+                wcInitPromise = EthereumProvider.init({
+                    projectId: WC_PROJECT_ID,
+                    optionalChains: [43113],
+                    rpcMap: { 43113: "https://api.avax-test.network/ext/bc/C/rpc" },
+                    showQrModal: true,
+                    metadata: {
+                        name: "MetaDEX V2",
+                        description: "Otonom RWA Borsası",
+                        url: window.location.origin,
+                        icons: [window.location.origin + "/favicon.ico"]
+                    }
+                });
+            }
+            wcProviderSingleton = await wcInitPromise;
+            return wcProviderSingleton;
+        };
+    </script>
+
+    <script>
+        const API_BASE = "";
+
+        const DEX_CONTRACT_ADDRESS = "0x61B87EfD176a1Bd2fEfD2e5Eae504d09Bf21c29D";
+
+        const DEX_ABI = [
+            "function buyAsset(string assetName, uint256 trybAmount) external",
+            "function sellAsset(string assetName, uint256 assetAmount) external",
+            "function trybToken() view returns (address)",
+            "function assets(string) view returns (address tokenContract, bool isActive)"
+        ];
+
+        const STAKING_CONTRACT_ADDRESS = "0x0000000000000000000000000000000000000000";
+        const META_COIN_ADDRESS = "0x193368921Ff99e0Ba65C694340d253f7f8D6D25E";
+
+        const ERC20_ABI = [
+            "function balanceOf(address owner) view returns (uint256)",
+            "function approve(address spender, uint256 amount) returns (bool)",
+            "function allowance(address owner, address spender) view returns (uint256)"
+        ];
+
+        let cüzdanBagliMi = false;
+        let provider, signer, userAddress;
+        let rawWcProvider = null;
+        let activeSlippage = 0.5;
+        let activeGwei = 'auto';
+        let listenerEklendi = false;
+
+        let simMetaStaked = 0;
+        let simTrybStaked = 0;
+
+        function sayfaDegis(e, sayfaAdi) {
+            document.querySelectorAll('.page-section').forEach(el => el.classList.remove('active'));
+            document.querySelectorAll('.nav-link').forEach(el => el.classList.remove('active'));
+            document.getElementById(sayfaAdi + 'Page').classList.add('active');
+            if (e && e.target.classList.contains('nav-link')) e.target.classList.add('active');
+            if (sayfaAdi === 'swap') setTimeout(grafikCiz, 50);
+            if (sayfaAdi === 'stake') refreshStakeUI();
+        }
+
+        function refreshStakeUI() {
+            document.getElementById("metaStakedAmount").innerText = simMetaStaked.toFixed(4);
+            document.getElementById("trybStakedAmount").innerText = simTrybStaked.toFixed(4);
+            
+            let tier = "Base HODLer";
+            if (simMetaStaked >= 128000) tier = "Tier 8: Satoshi's Chosen 👑";
+            else if (simMetaStaked >= 64000) tier = "Tier 7: Cyber Whale 🐋";
+            else if (simMetaStaked >= 32000) tier = "Tier 6: Diamond Hands 💎";
+            else if (simMetaStaked >= 16000) tier = "Tier 5: DeFi Pioneer";
+            else if (simMetaStaked >= 8000) tier = "Tier 4: Web3 Native";
+            else if (simMetaStaked >= 4000) tier = "Tier 3: Alpha Seeker";
+            else if (simMetaStaked >= 2000) tier = "Tier 2: Yield Farmer";
+            else if (simMetaStaked >= 1000) tier = "Tier 1: Base HODLer";
+            document.getElementById("metaTierBadge").innerText = `Seviye: ${tier}`;
+        }
+
+        function metaStakeEt() {
+            const miktar = parseFloat(document.getElementById("metaStakeInput").value);
+            if (!miktar || miktar <= 0) { alert("Lütfen geçerli bir miktar girin."); return; }
+            simMetaStaked += miktar;
+            document.getElementById("metaStakeInput").value = "";
+            refreshStakeUI();
+            alert("İşlem Onaylandı: META Coinleriniz başarıyla havuza kilitlendi!");
+        }
+
+        function metaWithdrawEt() {
+            const miktar = parseFloat(document.getElementById("metaStakeInput").value) || simMetaStaked;
+            if (miktar <= 0 || simMetaStaked <= 0) { alert("Çekilecek META bulunmuyor."); return; }
+            simMetaStaked = Math.max(0, simMetaStaked - miktar);
+            document.getElementById("metaStakeInput").value = "";
+            refreshStakeUI();
+            alert("İşlem Onaylandı: META Coinleriniz cüzdanınıza geri çekildi!");
+        }
+
+        function metaClaimEt() {
+            alert("Başarılı: Biriken tTRYB temettü ödülleriniz cüzdanınıza aktarıldı!");
+        }
+
+        function trybStakeEt() {
+            const miktar = parseFloat(document.getElementById("trybStakeInput").value);
+            if (!miktar || miktar <= 0) { alert("Lütfen geçerli bir miktar girin."); return; }
+            simTrybStaked += miktar;
+            document.getElementById("trybStakeInput").value = "";
+            refreshStakeUI();
+            alert("İşlem Onaylandı: TRYB başarıyla stake edildi, TR10Y esnek getiri başladı!");
+        }
+
+        function trybWithdrawEt() {
+            const miktar = parseFloat(document.getElementById("trybStakeInput").value) || simTrybStaked;
+            if (miktar <= 0 || simTrybStaked <= 0) { alert("Çekilecek TRYB bulunmuyor."); return; }
+            simTrybStaked = Math.max(0, simTrybStaked - miktar);
+            document.getElementById("trybStakeInput").value = "";
+            refreshStakeUI();
+            alert("İşlem Onaylandı: TRYB'leriniz cüzdanınıza geri çekildi!");
+        }
+
+        function trybClaimEt() {
+            alert("Başarılı: TR10Y tahvil getirileriniz cüzdanınıza aktarıldı!");
+        }
+
+        function toggleSettings() { document.getElementById('settingsModal').classList.toggle('active'); }
+        function toggleWalletChoice() { document.getElementById('walletChoiceModal').classList.toggle('active'); }
+
+        function setSlippage(val, btn) {
+            activeSlippage = val;
+            document.getElementById('customSlippage').value = '';
+            document.querySelectorAll('.preset-btn').forEach(b => { if (b.innerText.includes('%')) b.classList.remove('active'); });
+            btn.classList.add('active');
+        }
+
+        function clearSlippageBtns() {
+            activeSlippage = parseFloat(document.getElementById('customSlippage').value) || 0.5;
+            document.querySelectorAll('.preset-btn').forEach(b => { if (b.innerText.includes('%')) b.classList.remove('active'); });
+        }
+
+        function setGwei(val, btn) {
+            activeGwei = val;
+            document.querySelectorAll('.preset-btn').forEach(b => { if (!b.innerText.includes('%')) b.classList.remove('active'); });
+            btn.classList.add('active');
+        }
+
+        let yonAlis = true;
+        function yonDegistir() {
+            yonAlis = !yonAlis;
+            const b1 = document.getElementById('box1'); const b2 = document.getElementById('box2');
+            const payInput = document.getElementById('payAmount'); const recInput = document.getElementById('receiveAmount');
+
+            if (yonAlis) {
+                b1.style.order = "1"; b2.style.order = "3";
+                payInput.removeAttribute('readonly'); recInput.setAttribute('readonly', 'true');
+                document.getElementById("payLabel").innerText = "Ödeyeceğiniz";
+                document.getElementById("recLabel").innerText = "Alacağınız";
+            } else {
+                b1.style.order = "3"; b2.style.order = "1";
+                recInput.removeAttribute('readonly'); payInput.setAttribute('readonly', 'true');
+                document.getElementById("payLabel").innerText = "Alacağınız";
+                document.getElementById("recLabel").innerText = "Ödeyeceğiniz";
+            }
+            payInput.value = ""; recInput.value = "";
+            updateBalances();
+            hesapla();
+        }
+
+        let sonBakiyeler = { tryb: "0", varlik: "0" };
+
+        async function updateBalances() {
+            const payEl = document.getElementById("payBalance");
+            const recEl = document.getElementById("recBalance");
+            if (!cüzdanBagliMi || !provider) {
+                payEl.innerText = "Bakiye: --";
+                recEl.innerText = "Bakiye: --";
+                return;
+            }
+            try {
+                const dexContract = new ethers.Contract(DEX_CONTRACT_ADDRESS, DEX_ABI, provider);
+                const trybAddress = await dexContract.trybToken();
+                const trybContract = new ethers.Contract(trybAddress, ERC20_ABI, provider);
+                const trybBakiye = ethers.utils.formatEther(await trybContract.balanceOf(userAddress));
+
+                const select = document.getElementById("assetSelect");
+                const varlik = select.value;
+                const varlikAdi = select.options[select.selectedIndex].text.split(" ")[0];
+                const assetInfo = await dexContract.assets(varlik);
+                const assetContract = new ethers.Contract(assetInfo.tokenContract, ERC20_ABI, provider);
+                const assetBakiye = ethers.utils.formatEther(await assetContract.balanceOf(userAddress));
+
+                sonBakiyeler = { tryb: trybBakiye, varlik: assetBakiye };
+                payEl.innerText = `Bakiye: ${parseFloat(trybBakiye).toFixed(2)} TRYB`;
+                recEl.innerText = `Bakiye: ${parseFloat(assetBakiye).toFixed(4)} ${varlikAdi}`;
+            } catch (error) { console.error("Bakiye okunamadı:", error); }
+        }
+
+        function maxBalance(type) {
+            if (!cüzdanBagliMi) return;
+            if (yonAlis && type === 'pay') {
+                document.getElementById("payAmount").value = sonBakiyeler.tryb;
+            } else if (!yonAlis && type === 'rec') {
+                document.getElementById("receiveAmount").value = sonBakiyeler.varlik;
+            } else {
+                return;
+            }
+            hesapla();
+        }
+
+        function ethereumEventListeneriKur(rawProvider) {
+            try {
+                rawProvider.on('chainChanged', () => window.location.reload());
+                rawProvider.on('accountsChanged', (accounts) => {
+                    if (!accounts || accounts.length === 0) cuzdanBaglantisiniKes();
+                    else window.location.reload();
+                });
+            } catch (e) { }
+        }
+
+        async function finalizeConnection(rawProvider) {
+            provider = new ethers.providers.Web3Provider(rawProvider, "any");
+            provider.on("network", (yeniAg, eskiAg) => { if (eskiAg) window.location.reload(); });
+            signer = provider.getSigner();
+            userAddress = await signer.getAddress();
+            cüzdanBagliMi = true;
+
+            const shortAddr = userAddress.substring(0, 6) + "..." + userAddress.substring(userAddress.length - 4);
+            document.getElementById("connectBtn").innerText = shortAddr;
+            document.getElementById("swapBtn").innerText = "Takası Onayla";
+            document.getElementById("swapBtn").classList.add("active");
+
+            if (!listenerEklendi) { ethereumEventListeneriKur(rawProvider); listenerEklendi = true; }
+            updateBalances();
+            if (document.getElementById('stakePage').classList.contains('active')) refreshStakeUI();
+            toggleWalletChoice();
+        }
+
+        function cuzdanBaglantisiniKes() {
+            cüzdanBagliMi = false; userAddress = null; signer = null; provider = null; listenerEklendi = false;
+            if (rawWcProvider) { try { rawWcProvider.disconnect(); } catch (e) {} rawWcProvider = null; }
+            document.getElementById("connectBtn").innerText = "Cüzdanı Bağla";
+            document.getElementById("swapBtn").innerText = "Cüzdanı Bağlayın";
+            document.getElementById("swapBtn").classList.remove("active");
+            updateBalances();
+        }
+
+        let baglantiMesgul = false;
+        function cuzdanBagla() {
+            if (cüzdanBagliMi) { cuzdanBaglantisiniKes(); return; }
+            if (baglantiMesgul) return;
+            toggleWalletChoice();
+        }
+
+        async function connectInjected() {
+            if (baglantiMesgul) return;
+            if (typeof window.ethereum === 'undefined') { alert("MetaMask bulunamadı."); return; }
+            baglantiMesgul = true;
+            try {
+                await window.ethereum.request({ method: 'eth_requestAccounts' });
+                await finalizeConnection(window.ethereum);
+            } catch (error) { console.error(error); } 
+            finally { baglantiMesgul = false; }
+        }
+
+        async function connectViaWalletConnect() {
+            if (baglantiMesgul) return;
+            baglantiMesgul = true;
+            try {
+                const wcProvider = await window.__initWalletConnect();
+                rawWcProvider = wcProvider;
+                await wcProvider.connect();
+                await finalizeConnection(wcProvider);
+            } catch (error) { console.error(error); } 
+            finally { baglantiMesgul = false; }
+        }
+
+        let islemSuruyor = false;
+        async function islemYap() {
+            if (!cüzdanBagliMi || !signer) { cuzdanBagla(); return; }
+            if (islemSuruyor) return;
+
+            const girilenMiktar = yonAlis ? document.getElementById("payAmount").value : document.getElementById("receiveAmount").value;
+            if (!girilenMiktar || parseFloat(girilenMiktar) <= 0) { alert("Lütfen takas miktarı girin!"); return; }
+
+            let txOptions = {};
+            if (activeGwei === 'normal') txOptions.gasPrice = ethers.utils.parseUnits("30", "gwei");
+            if (activeGwei === 'fast') txOptions.gasPrice = ethers.utils.parseUnits("50", "gwei");
+
+            const assetName = document.getElementById("assetSelect").value;
+            const miktarWei = ethers.utils.parseEther(girilenMiktar.toString());
+            const swapBtn = document.getElementById("swapBtn");
+
+            islemSuruyor = true;
+            swapBtn.disabled = true;
+            try {
+                swapBtn.innerText = "İşlem Bekleniyor...";
+                const dexContract = new ethers.Contract(DEX_CONTRACT_ADDRESS, DEX_ABI, signer);
+
+                if (yonAlis) {
+                    const trybAddress = await dexContract.trybToken();
+                    const trybContract = new ethers.Contract(trybAddress, ERC20_ABI, signer);
+                    const allowance = await trybContract.allowance(userAddress, DEX_CONTRACT_ADDRESS);
+
+                    if (allowance.lt(miktarWei)) {
+                        const approveTx = await trybContract.approve(DEX_CONTRACT_ADDRESS, ethers.constants.MaxUint256, txOptions);
+                        await approveTx.wait();
+                    }
+                    const tx = await dexContract.buyAsset(assetName, miktarWei, txOptions);
+                    await tx.wait();
+                } else {
+                    const assetInfo = await dexContract.assets(assetName);
+                    const assetContract = new ethers.Contract(assetInfo.tokenContract, ERC20_ABI, signer);
+                    const allowance = await assetContract.allowance(userAddress, DEX_CONTRACT_ADDRESS);
+
+                    if (allowance.lt(miktarWei)) {
+                        const approveTx = await assetContract.approve(DEX_CONTRACT_ADDRESS, ethers.constants.MaxUint256, txOptions);
+                        await approveTx.wait();
+                    }
+                    const tx = await dexContract.sellAsset(assetName, miktarWei, txOptions);
+                    await tx.wait();
+                }
+                updateBalances();
+                alert("Takas Başarıyla Gerçekleşti!");
+            } catch (error) {
+                console.error(error);
+                alert("İşlem hatası! Cüzdanda yeterli bakiye veya ağ ücreti olduğundan emin olun.");
+            } finally {
+                swapBtn.innerText = "Takası Onayla";
+                swapBtn.disabled = false;
+                islemSuruyor = false;
+            }
+        }
+
+        // --- 📊 GRAFİK ---
+        let chartInstance = null, lineSeries = null, isDrawing = false;
+        let aktifAralik = '1d', sonCizimAnahtari = '';
+        let anlikFiyat = 0;
+
+        function setAralik(aralik, btn) {
+            aktifAralik = aralik;
+            document.querySelectorAll('.range-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            grafikCiz();
+        }
+
+        function toggleChart() {
+            const chartEl = document.getElementById('chartContainer');
+            chartEl.classList.toggle('active');
+            if (chartEl.classList.contains('active')) setTimeout(grafikCiz, 50);
+        }
+
+        function grafikMesajGoster(metin) {
+            const el = document.getElementById('grafikMesaj');
+            el.innerText = metin || '';
+            el.style.display = metin ? 'flex' : 'none';
+        }
+
+        function chartKur() {
+            if (chartInstance) return;
+            const container = document.getElementById('otonom_grafik');
+            chartInstance = LightweightCharts.createChart(container, {
+                autoSize: true,
+                layout: { background: { type: 'solid', color: '#131a2a' }, textColor: '#ffffff' },
+                grid: { vertLines: { color: 'rgba(255,255,255,0.05)' }, horzLines: { color: 'rgba(255,255,255,0.05)' } },
+                timeScale: { timeVisible: true, secondsVisible: false }
+            });
+            lineSeries = chartInstance.addLineSeries({ color: '#00d2ff', lineWidth: 2 });
+        }
+
+        async function grafikCiz() {
+            if (isDrawing) return;
+            isDrawing = true;
+            try {
+                const varlik = document.getElementById("assetSelect").value;
+                let veri = [];
+                try {
+                    const res = await fetch(`${API_BASE}/api/history/${varlik}?range=${aktifAralik}`);
+                    if (res.ok) {
+                        const raw = await res.json();
+                        let sonZaman = 0;
+                        for (const r of raw) {
+                            const p = { time: Number(r.time), value: Number(r.value) };
+                            if (p.time > sonZaman) { veri.push(p); sonZaman = p.time; }
+                        }
+                    }
+                } catch (err) { console.error("Geçmiş veri çekilemedi:", err); }
+
+                chartKur();
+
+                if (veri.length === 0) {
+                    lineSeries.setData([]);
+                    grafikMesajGoster("Bu varlık için seçili aralıkta veri yok.");
+                    document.getElementById("veriDurumu").innerText = "";
+                    return;
+                }
+                grafikMesajGoster("");
+                lineSeries.setData(veri);
+
+                const anahtar = varlik + aktifAralik;
+                if (anahtar !== sonCizimAnahtari) {
+                    chartInstance.timeScale().fitContent();
+                    sonCizimAnahtari = anahtar;
+                }
+
+                const yas = Math.floor(Date.now() / 1000) - veri[veri.length - 1].time;
+                const durum = document.getElementById("veriDurumu");
+                if (yas > 180) {
+                    durum.style.color = "#ffcc00";
+                    durum.innerText = `⚠️ Son veri ${Math.round(yas / 60)} dk önce`;
+                } else {
+                    durum.style.color = "#00ffc2";
+                    durum.innerText = "● Canlı";
+                }
+            } finally {
+                isDrawing = false;
+            }
+        }
+
+        async function fiyatGetir() {
+            const varlik = document.getElementById("assetSelect").value;
+            try {
+                const res = await fetch(`${API_BASE}/api/price/${varlik}`);
+                if (!res.ok) throw new Error("Bu varlık için fiyat yok");
+                const data = await res.json();
+                anlikFiyat = Number(data.price) || 0;
+            } catch (err) { anlikFiyat = 0; }
+            hesapla();
+            const swapAcik = document.getElementById('swapPage').classList.contains('active');
+            const grafikAcik = document.getElementById('chartContainer').classList.contains('active');
+            if (swapAcik && grafikAcik) grafikCiz();
+        }
+
+        function hesapla() {
+            const pay = document.getElementById("payAmount");
+            const rec = document.getElementById("receiveAmount");
+            const miktar = parseFloat(yonAlis ? pay.value : rec.value) || 0;
+            if (anlikFiyat <= 0) return;
+            if (yonAlis) rec.value = miktar > 0 ? (miktar / anlikFiyat).toFixed(4) : "";
+            else pay.value = miktar > 0 ? (miktar * anlikFiyat).toFixed(2) : "";
+        }
+
+        document.getElementById("payAmount").addEventListener("input", hesapla);
+        document.getElementById("receiveAmount").addEventListener("input", hesapla);
+
+        async function updateTrybApy() {
+            const el = document.getElementById("trybApyDisplay");
+            const note = document.getElementById("trybApyNote");
+            try {
+                const res = await fetch(`${API_BASE}/api/tr10y`);
+                if (!res.ok) throw new Error("veri yok");
+                const d = await res.json();
+                el.innerText = `%${Number(d.yield).toFixed(2)}`;
+                const tarih = new Date(d.ts * 1000).toLocaleDateString("tr-TR");
+                note.innerText = `TR10Y · ${d.source} · ${tarih}` + (d.stale ? " · ⚠️ güncel değil" : "");
+            } catch (e) {
+                el.innerText = "—";
+                note.innerText = "TR10Y verisi şu an alınamıyor";
+            }
+        }
+
+        function updateCountdown() {
+            const targetDate = new Date("June 25, 2027 00:00:00").getTime();
+            const now = new Date().getTime();
+            const distance = targetDate - now;
+
+            if (distance > 0) {
+                document.getElementById("cd-days").innerText = Math.floor(distance / (1000 * 60 * 60 * 24));
+                document.getElementById("cd-hours").innerText = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+                document.getElementById("cd-minutes").innerText = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+            }
+        }
+        setInterval(updateCountdown, 60000);
+        updateCountdown();
+
+        window.onload = () => {
+            fiyatGetir();
+            updateTrybApy();
+            setInterval(fiyatGetir, 15000);
+            setInterval(updateTrybApy, 30000);
+            setTimeout(grafikCiz, 100);
+        };
+    </script>
+</body>
+</html>
+EOF

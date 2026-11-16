@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">MetaDEX</string>
+    <string name="title_activity_main">MetaDEX</string>
+    <string name="package_name">com.metadex.app</string>
+    <string name="custom_url_scheme">com.metadex.app</string>
+</resources>
