@@ -1,0 +1,6 @@
+{
+	"appId": "com.metadex.app",
+	"appName": "MetaDEX",
+	"webDir": "www",
+	"bundledWebRuntime": false
+}
